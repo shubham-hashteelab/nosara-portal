@@ -49,8 +49,8 @@ export default function BuildingDetailPage() {
   });
 
   const createFloorMutation = useMutation({
-    mutationFn: (data: { floor_number: number; label: string }) =>
-      createFloor({ building_id: buildingId, ...data }),
+    mutationFn: (data: { floor_number: number }) =>
+      createFloor(buildingId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["floors", buildingId] });
       queryClient.invalidateQueries({ queryKey: ["building", buildingId] });

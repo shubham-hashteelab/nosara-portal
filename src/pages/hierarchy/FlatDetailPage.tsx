@@ -16,7 +16,6 @@ import { getMediaUrl } from "@/api/media";
 import { ArrowLeft, ListChecks, Image, Mic } from "lucide-react";
 import { capitalize } from "@/lib/utils";
 import type { InspectionEntry } from "@/types/api";
-import { CheckStatus } from "@/types/enums";
 
 export default function FlatDetailPage() {
   const { flatId } = useParams<{ flatId: string }>();
@@ -61,15 +60,15 @@ export default function FlatDetailPage() {
       accessor: (e) => e.category,
     },
     {
-      key: "checklist_item",
+      key: "item_name",
       header: "Checklist Item",
     },
     {
-      key: "check_status",
+      key: "status",
       header: "Status",
-      render: (e) => <StatusBadge status={e.check_status} />,
+      render: (e) => <StatusBadge status={e.status} />,
       sortable: true,
-      accessor: (e) => e.check_status,
+      accessor: (e) => e.status,
     },
     {
       key: "severity",
@@ -111,9 +110,9 @@ export default function FlatDetailPage() {
 
   // Group entries by room for the summary
   const snagCount =
-    entries?.filter((e) => e.check_status === CheckStatus.FAIL).length ?? 0;
+    entries?.filter((e) => e.status === "FAIL").length ?? 0;
   const passCount =
-    entries?.filter((e) => e.check_status === CheckStatus.PASS).length ?? 0;
+    entries?.filter((e) => e.status === "PASS").length ?? 0;
   const totalEntries = entries?.length ?? 0;
 
   // Floor plan data for this flat's type
@@ -130,7 +129,7 @@ export default function FlatDetailPage() {
       const existing = map.get(e.room_label) ?? { inspected: 0, total: 0 };
       existing.total += 1;
       // "Inspected" = actively checked as PASS or FAIL (default NA means untouched)
-      if (e.check_status === CheckStatus.PASS || e.check_status === CheckStatus.FAIL) {
+      if (e.status === "PASS" || e.status === "FAIL") {
         existing.inspected += 1;
       }
       map.set(e.room_label, existing);
@@ -222,7 +221,7 @@ export default function FlatDetailPage() {
                   <img
                     key={img.id}
                     src={getMediaUrl(img.minio_key)}
-                    alt={img.caption ?? "Snag photo"}
+                    alt={img.original_filename ?? "Snag photo"}
                     className="h-24 w-24 object-cover rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary-500"
                     onClick={() => navigate(`/inspections/${img.entryId}`)}
                   />

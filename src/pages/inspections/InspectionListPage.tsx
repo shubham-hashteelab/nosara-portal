@@ -55,13 +55,13 @@ export default function InspectionListPage() {
       sortable: true,
     },
     {
-      key: "checklist_item",
+      key: "item_name",
       header: "Item",
     },
     {
-      key: "check_status",
+      key: "status",
       header: "Status",
-      render: (e) => <StatusBadge status={e.check_status} />,
+      render: (e) => <StatusBadge status={e.status} />,
     },
     {
       key: "severity",
@@ -79,11 +79,6 @@ export default function InspectionListPage() {
         ) : (
           <span className="text-gray-400 text-sm">--</span>
         ),
-    },
-    {
-      key: "inspector_name",
-      header: "Inspector",
-      render: (e) => e.inspector_name ?? "--",
     },
   ];
 

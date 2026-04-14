@@ -50,7 +50,7 @@ export default function FloorDetailPage() {
 
   const createFlatMutation = useMutation({
     mutationFn: (data: { flat_number: string; flat_type: string }) =>
-      createFlat({ floor_id: floorId, ...data }),
+      createFlat(floorId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["flats", floorId] });
       queryClient.invalidateQueries({ queryKey: ["floor", floorId] });

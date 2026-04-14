@@ -16,8 +16,7 @@ import type { Project } from "@/types/api";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  address: z.string().min(1, "Address is required"),
-  developer_name: z.string().min(1, "Developer name is required"),
+  location: z.string().min(1, "Location is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -43,12 +42,8 @@ export function ProjectFormDialog({
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     values: project
-      ? {
-          name: project.name,
-          address: project.address,
-          developer_name: project.developer_name,
-        }
-      : { name: "", address: "", developer_name: "" },
+      ? { name: project.name, location: project.location }
+      : { name: "", location: "" },
   });
 
   const handleFormSubmit = async (data: FormData) => {
@@ -77,19 +72,10 @@ export function ProjectFormDialog({
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input id="address" {...register("address")} />
-            {errors.address && (
-              <p className="text-sm text-red-500">{errors.address.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="developer_name">Developer Name</Label>
-            <Input id="developer_name" {...register("developer_name")} />
-            {errors.developer_name && (
-              <p className="text-sm text-red-500">
-                {errors.developer_name.message}
-              </p>
+            <Label htmlFor="location">Location</Label>
+            <Input id="location" {...register("location")} />
+            {errors.location && (
+              <p className="text-sm text-red-500">{errors.location.message}</p>
             )}
           </div>
           <DialogFooter>

@@ -20,7 +20,7 @@ export async function updateProject(
   id: string,
   data: ProjectUpdate
 ): Promise<Project> {
-  const response = await apiClient.put<Project>(
+  const response = await apiClient.patch<Project>(
     `/api/v1/projects/${id}`,
     data
   );

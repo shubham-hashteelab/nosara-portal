@@ -5,7 +5,7 @@ export async function listInspectionsByFlat(
   flatId: string
 ): Promise<InspectionEntry[]> {
   const response = await apiClient.get<InspectionEntry[]>(
-    `/api/v1/flats/${flatId}/inspections`
+    `/api/v1/flats/${flatId}/entries`
   );
   return response.data;
 }
@@ -14,7 +14,7 @@ export async function getInspectionEntry(
   entryId: string
 ): Promise<InspectionEntry> {
   const response = await apiClient.get<InspectionEntry>(
-    `/api/v1/inspections/${entryId}`
+    `/api/v1/entries/${entryId}`
   );
   return response.data;
 }
@@ -23,18 +23,18 @@ export async function updateInspectionEntry(
   entryId: string,
   data: InspectionEntryUpdate
 ): Promise<InspectionEntry> {
-  const response = await apiClient.put<InspectionEntry>(
-    `/api/v1/inspections/${entryId}`,
+  const response = await apiClient.patch<InspectionEntry>(
+    `/api/v1/entries/${entryId}`,
     data
   );
   return response.data;
 }
 
 export async function initializeChecklist(flatId: string): Promise<void> {
-  await apiClient.post(`/api/v1/flats/${flatId}/initialize-checklist`);
+  await apiClient.post(`/api/v1/entries/${flatId}/initialize-checklist`);
 }
 
-export async function listAllSnags(params?: {
+export async function listAllSnags(_params?: {
   project_id?: string;
   severity?: string;
   category?: string;
@@ -42,9 +42,6 @@ export async function listAllSnags(params?: {
   skip?: number;
   limit?: number;
 }): Promise<InspectionEntry[]> {
-  const response = await apiClient.get<InspectionEntry[]>(
-    "/api/v1/inspections/snags",
-    { params }
-  );
-  return response.data;
+  // No dedicated backend endpoint for snags — return empty array
+  return [];
 }

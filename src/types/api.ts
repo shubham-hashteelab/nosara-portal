@@ -1,11 +1,6 @@
 import type {
-  CheckStatus,
-  Severity,
-  SnagFixStatus,
   InspectionStatus,
   UserRole,
-  ChecklistCategory,
-  RoomType,
 } from "./enums";
 
 /* ───────── User ───────── */
@@ -50,8 +45,7 @@ export interface LoginResponse {
 export interface Project {
   id: string;
   name: string;
-  address: string;
-  developer_name: string;
+  location: string;
   total_buildings: number;
   total_flats: number;
   created_at: string;
@@ -60,14 +54,12 @@ export interface Project {
 
 export interface ProjectCreate {
   name: string;
-  address: string;
-  developer_name: string;
+  location: string;
 }
 
 export interface ProjectUpdate {
   name?: string;
-  address?: string;
-  developer_name?: string;
+  location?: string;
 }
 
 /* ───────── Building ───────── */
@@ -137,46 +129,43 @@ export interface FlatUpdate {
 export interface InspectionEntry {
   id: string;
   flat_id: string;
-  room_type: RoomType;
   room_label: string;
-  category: ChecklistCategory;
-  checklist_item: string;
-  check_status: CheckStatus;
-  severity: Severity | null;
-  snag_fix_status: SnagFixStatus | null;
+  category: string;
+  item_name: string;
+  status: string;
+  severity: string | null;
+  snag_fix_status: string;
   notes: string | null;
   inspector_id: string | null;
-  inspector_name: string | null;
   created_at: string;
   updated_at: string;
   images: SnagImage[];
   voice_notes: VoiceNote[];
-  contractor_assignments: SnagContractorAssignment[];
 }
 
 export interface InspectionEntryUpdate {
-  check_status?: CheckStatus;
-  severity?: Severity | null;
-  snag_fix_status?: SnagFixStatus | null;
+  status?: string;
+  severity?: string | null;
+  snag_fix_status?: string | null;
   notes?: string | null;
 }
 
 /* ───────── Media ───────── */
 export interface SnagImage {
   id: string;
-  entry_id: string;
+  inspection_entry_id: string;
   minio_key: string;
-  caption: string | null;
-  uploaded_at: string;
+  original_filename: string | null;
+  file_size_bytes: number | null;
+  created_at: string;
 }
 
 export interface VoiceNote {
   id: string;
-  entry_id: string;
+  inspection_entry_id: string;
   minio_key: string;
-  duration_seconds: number | null;
-  transcript: string | null;
-  uploaded_at: string;
+  duration_ms: number;
+  created_at: string;
 }
 
 /* ───────── Contractor ───────── */
@@ -221,9 +210,9 @@ export interface SnagContractorAssignment {
 /* ───────── Checklist Template ───────── */
 export interface ChecklistTemplate {
   id: string;
-  room_type: RoomType;
-  category: ChecklistCategory;
-  item_label: string;
+  room_type: string;
+  category: string;
+  item_name: string;
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -231,14 +220,14 @@ export interface ChecklistTemplate {
 }
 
 export interface ChecklistTemplateCreate {
-  room_type: RoomType;
-  category: ChecklistCategory;
-  item_label: string;
+  room_type: string;
+  category: string;
+  item_name: string;
   sort_order?: number;
 }
 
 export interface ChecklistTemplateUpdate {
-  item_label?: string;
+  item_name?: string;
   sort_order?: number;
   is_active?: boolean;
 }
@@ -247,16 +236,15 @@ export interface ChecklistTemplateUpdate {
 export interface FlatTypeRoom {
   id: string;
   flat_type: string;
-  room_type: RoomType;
-  room_label: string;
+  room_type: string;
+  label: string;
   sort_order: number;
-  created_at: string;
 }
 
 export interface FlatTypeRoomCreate {
   flat_type: string;
-  room_type: RoomType;
-  room_label: string;
+  room_type: string;
+  label: string;
   sort_order?: number;
 }
 
@@ -316,7 +304,7 @@ export interface OverdueSnag {
   flat_number: string;
   building_name: string;
   checklist_item: string;
-  severity: Severity;
+  severity: string;
   days_open: number;
   contractor_name: string | null;
 }

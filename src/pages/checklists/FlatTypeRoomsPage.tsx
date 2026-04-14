@@ -32,7 +32,7 @@ import { useNavigate } from "react-router-dom";
 const roomSchema = z.object({
   flat_type: z.string().min(1, "Flat type is required"),
   room_type: z.nativeEnum(RoomType),
-  room_label: z.string().min(1, "Room label is required"),
+  label: z.string().min(1, "Room label is required"),
   sort_order: z.coerce.number().int().min(0).default(0),
 });
 
@@ -70,7 +70,7 @@ export default function FlatTypeRoomsPage() {
     defaultValues: {
       flat_type: "",
       room_type: RoomType.LIVING_ROOM,
-      room_label: "",
+      label: "",
       sort_order: 0,
     },
   });
@@ -149,7 +149,7 @@ export default function FlatTypeRoomsPage() {
                           </span>
                           <div>
                             <p className="text-sm font-medium">
-                              {room.room_label}
+                              {room.label}
                             </p>
                             <p className="text-xs text-gray-500">
                               {capitalize(room.room_type)}
@@ -209,11 +209,11 @@ export default function FlatTypeRoomsPage() {
               <Label>Room Label</Label>
               <Input
                 placeholder="e.g., Master Bedroom, Kitchen"
-                {...form.register("room_label")}
+                {...form.register("label")}
               />
-              {form.formState.errors.room_label && (
+              {form.formState.errors.label && (
                 <p className="text-sm text-red-500">
-                  {form.formState.errors.room_label.message}
+                  {form.formState.errors.label.message}
                 </p>
               )}
             </div>
@@ -244,7 +244,7 @@ export default function FlatTypeRoomsPage() {
         open={!!deleteTarget}
         onOpenChange={() => setDeleteTarget(null)}
         title="Delete Room Definition"
-        description={`Delete "${deleteTarget?.room_label}" from ${deleteTarget?.flat_type}?`}
+        description={`Delete "${deleteTarget?.label}" from ${deleteTarget?.flat_type}?`}
         confirmLabel="Delete"
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget.id);

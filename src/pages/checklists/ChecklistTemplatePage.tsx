@@ -36,7 +36,7 @@ import { Link } from "react-router-dom";
 const templateSchema = z.object({
   room_type: z.nativeEnum(RoomType),
   category: z.nativeEnum(ChecklistCategory),
-  item_label: z.string().min(1, "Label is required"),
+  item_name: z.string().min(1, "Label is required"),
   sort_order: z.coerce.number().int().min(0).default(0),
 });
 
@@ -92,7 +92,7 @@ export default function ChecklistTemplatePage() {
     defaultValues: {
       room_type: RoomType.LIVING_ROOM,
       category: ChecklistCategory.ELECTRICAL,
-      item_label: "",
+      item_name: "",
       sort_order: 0,
     },
   });
@@ -101,9 +101,9 @@ export default function ChecklistTemplatePage() {
     resolver: zodResolver(templateSchema),
     values: editTarget
       ? {
-          room_type: editTarget.room_type,
-          category: editTarget.category,
-          item_label: editTarget.item_label,
+          room_type: editTarget.room_type as TemplateForm["room_type"],
+          category: editTarget.category as TemplateForm["category"],
+          item_name: editTarget.item_name,
           sort_order: editTarget.sort_order,
         }
       : undefined,
@@ -190,7 +190,7 @@ export default function ChecklistTemplatePage() {
                             </span>
                             <div>
                               <p className="text-sm font-medium">
-                                {t.item_label}
+                                {t.item_name}
                               </p>
                               <p className="text-xs text-gray-500">
                                 {capitalize(t.category)}
@@ -264,11 +264,11 @@ export default function ChecklistTemplatePage() {
               <Label>Item Label</Label>
               <Input
                 placeholder="e.g., Check power outlet functionality"
-                {...form.register("item_label")}
+                {...form.register("item_name")}
               />
-              {form.formState.errors.item_label && (
+              {form.formState.errors.item_name && (
                 <p className="text-sm text-red-500">
-                  {form.formState.errors.item_label.message}
+                  {form.formState.errors.item_name.message}
                 </p>
               )}
             </div>
@@ -306,7 +306,7 @@ export default function ChecklistTemplatePage() {
               updateMutation.mutate({
                 id: editTarget!.id,
                 data: {
-                  item_label: data.item_label,
+                  item_name: data.item_name,
                   sort_order: data.sort_order,
                 },
               })
@@ -315,7 +315,7 @@ export default function ChecklistTemplatePage() {
           >
             <div className="space-y-2">
               <Label>Item Label</Label>
-              <Input {...editForm.register("item_label")} />
+              <Input {...editForm.register("item_name")} />
             </div>
             <div className="space-y-2">
               <Label>Sort Order</Label>
@@ -345,7 +345,7 @@ export default function ChecklistTemplatePage() {
         open={!!deleteTarget}
         onOpenChange={() => setDeleteTarget(null)}
         title="Delete Checklist Item"
-        description={`Delete "${deleteTarget?.item_label}"?`}
+        description={`Delete "${deleteTarget?.item_name}"?`}
         confirmLabel="Delete"
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget.id);

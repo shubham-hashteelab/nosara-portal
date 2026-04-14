@@ -3,7 +3,7 @@ import { Severity } from "@/types/enums";
 import { capitalize } from "@/lib/utils";
 
 interface SeverityBadgeProps {
-  severity: Severity | null;
+  severity: string | null;
 }
 
 const severityConfig: Record<

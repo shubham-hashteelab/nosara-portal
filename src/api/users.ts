@@ -20,7 +20,7 @@ export async function updateUser(
   id: string,
   data: UserUpdate
 ): Promise<User> {
-  const response = await apiClient.put<User>(`/api/v1/users/${id}`, data);
+  const response = await apiClient.patch<User>(`/api/v1/users/${id}`, data);
   return response.data;
 }
 

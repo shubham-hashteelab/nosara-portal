@@ -3,7 +3,7 @@ import { CheckStatus, InspectionStatus, SnagFixStatus } from "@/types/enums";
 import { capitalize } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: CheckStatus | InspectionStatus | SnagFixStatus;
+  status: string;
 }
 
 const statusConfig: Record<

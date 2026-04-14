@@ -68,7 +68,7 @@ export default function ProjectDetailPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { name: string; address: string; developer_name: string }) =>
+    mutationFn: (data: { name: string; location: string }) =>
       updateProject(projectId, data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["project", projectId] }),
@@ -76,7 +76,7 @@ export default function ProjectDetailPage() {
 
   const createBuildingMutation = useMutation({
     mutationFn: (data: { name: string }) =>
-      createBuilding({ project_id: projectId, name: data.name }),
+      createBuilding(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["buildings", projectId] });
       queryClient.invalidateQueries({ queryKey: ["project", projectId] });
@@ -133,7 +133,7 @@ export default function ProjectDetailPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
           <p className="text-sm text-gray-500">
-            {project.developer_name} — {project.address}
+            {project.location}
           </p>
         </div>
         <Button variant="outline" onClick={() => setEditOpen(true)}>

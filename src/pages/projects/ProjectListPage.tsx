@@ -46,8 +46,7 @@ export default function ProjectListPage() {
 
   const columns: Column<Project>[] = [
     { key: "name", header: "Name", sortable: true },
-    { key: "developer_name", header: "Developer", sortable: true },
-    { key: "address", header: "Address" },
+    { key: "location", header: "Location", sortable: true },
     {
       key: "total_buildings",
       header: "Buildings",

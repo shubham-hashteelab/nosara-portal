@@ -89,7 +89,7 @@ export function ProjectAssignmentDialog({
                           {p.name}
                         </span>
                         <span className="ml-2 text-xs text-gray-500">
-                          {p.address ?? ""}
+                          {p.location ?? ""}
                         </span>
                       </div>
                       <Button
@@ -121,7 +121,7 @@ export function ProjectAssignmentDialog({
                       <div>
                         <span className="text-gray-700">{p.name}</span>
                         <span className="ml-2 text-xs text-gray-400">
-                          {p.address ?? ""}
+                          {p.location ?? ""}
                         </span>
                       </div>
                       <Button

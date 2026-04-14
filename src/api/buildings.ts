@@ -1,5 +1,5 @@
 import apiClient from "./client";
-import type { Building, BuildingCreate, BuildingUpdate } from "@/types/api";
+import type { Building, BuildingUpdate } from "@/types/api";
 
 export async function listBuildingsByProject(
   projectId: string
@@ -15,8 +15,14 @@ export async function getBuilding(id: string): Promise<Building> {
   return response.data;
 }
 
-export async function createBuilding(data: BuildingCreate): Promise<Building> {
-  const response = await apiClient.post<Building>("/api/v1/buildings", data);
+export async function createBuilding(
+  projectId: string,
+  data: { name: string }
+): Promise<Building> {
+  const response = await apiClient.post<Building>(
+    `/api/v1/projects/${projectId}/buildings`,
+    data
+  );
   return response.data;
 }
 
@@ -24,7 +30,7 @@ export async function updateBuilding(
   id: string,
   data: BuildingUpdate
 ): Promise<Building> {
-  const response = await apiClient.put<Building>(
+  const response = await apiClient.patch<Building>(
     `/api/v1/buildings/${id}`,
     data
   );

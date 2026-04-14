@@ -8,7 +8,6 @@ import { getInspectionEntry, updateInspectionEntry } from "@/api/inspections";
 import {
   listContractors,
   assignContractorToSnag,
-  unassignContractorFromSnag,
 } from "@/api/contractors";
 import { getMediaUrl } from "@/api/media";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { SeverityBadge } from "@/components/common/SeverityBadge";
@@ -30,16 +28,14 @@ import {
   Mic,
 } from "lucide-react";
 import { capitalize, formatDateTime } from "@/lib/utils";
-import {
-  CheckStatus,
-  Severity,
-  SnagFixStatus,
-} from "@/types/enums";
+const STATUS_VALUES = ["NA", "PASS", "FAIL"] as const;
+const SEVERITY_VALUES = ["CRITICAL", "MAJOR", "MINOR"] as const;
+const FIX_STATUS_VALUES = ["OPEN", "FIXED", "VERIFIED"] as const;
 
 const updateSchema = z.object({
-  check_status: z.nativeEnum(CheckStatus),
-  severity: z.nativeEnum(Severity).nullable(),
-  snag_fix_status: z.nativeEnum(SnagFixStatus).nullable(),
+  status: z.string(),
+  severity: z.string().nullable(),
+  snag_fix_status: z.string().nullable(),
   notes: z.string().nullable(),
 });
 
@@ -67,7 +63,7 @@ export default function InspectionDetailPage() {
     resolver: zodResolver(updateSchema),
     values: entry
       ? {
-          check_status: entry.check_status,
+          status: entry.status,
           severity: entry.severity,
           snag_fix_status: entry.snag_fix_status,
           notes: entry.notes,
@@ -78,7 +74,7 @@ export default function InspectionDetailPage() {
   const updateMutation = useMutation({
     mutationFn: (data: UpdateForm) =>
       updateInspectionEntry(entryIdNum, {
-        check_status: data.check_status,
+        status: data.status,
         severity: data.severity,
         snag_fix_status: data.snag_fix_status,
         notes: data.notes,
@@ -90,12 +86,6 @@ export default function InspectionDetailPage() {
   const assignMutation = useMutation({
     mutationFn: (contractorId: string) =>
       assignContractorToSnag(entryIdNum, contractorId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["inspection", entryIdNum] }),
-  });
-
-  const unassignMutation = useMutation({
-    mutationFn: unassignContractorFromSnag,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["inspection", entryIdNum] }),
   });
@@ -112,14 +102,14 @@ export default function InspectionDetailPage() {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">
-            {entry.checklist_item}
+            {entry.item_name}
           </h1>
           <p className="text-sm text-gray-500">
             {entry.room_label} — {capitalize(entry.category)} — Entry #{entry.id}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <StatusBadge status={entry.check_status} />
+          <StatusBadge status={entry.status} />
           <SeverityBadge severity={entry.severity} />
         </div>
       </div>
@@ -140,9 +130,9 @@ export default function InspectionDetailPage() {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>Check Status</Label>
-                    <Select {...form.register("check_status")}>
-                      {Object.values(CheckStatus).map((s) => (
+                    <Label>Status</Label>
+                    <Select {...form.register("status")}>
+                      {STATUS_VALUES.map((s) => (
                         <option key={s} value={s}>
                           {capitalize(s)}
                         </option>
@@ -156,14 +146,12 @@ export default function InspectionDetailPage() {
                       onChange={(e) =>
                         form.setValue(
                           "severity",
-                          e.target.value
-                            ? (e.target.value as Severity)
-                            : null
+                          e.target.value || null
                         )
                       }
                     >
                       <option value="">None</option>
-                      {Object.values(Severity).map((s) => (
+                      {SEVERITY_VALUES.map((s) => (
                         <option key={s} value={s}>
                           {capitalize(s)}
                         </option>
@@ -177,14 +165,12 @@ export default function InspectionDetailPage() {
                       onChange={(e) =>
                         form.setValue(
                           "snag_fix_status",
-                          e.target.value
-                            ? (e.target.value as SnagFixStatus)
-                            : null
+                          e.target.value || null
                         )
                       }
                     >
                       <option value="">None</option>
-                      {Object.values(SnagFixStatus).map((s) => (
+                      {FIX_STATUS_VALUES.map((s) => (
                         <option key={s} value={s}>
                           {capitalize(s)}
                         </option>
@@ -233,17 +219,12 @@ export default function InspectionDetailPage() {
                     <div key={img.id} className="relative group">
                       <img
                         src={getMediaUrl(img.minio_key)}
-                        alt={img.caption ?? "Snag photo"}
+                        alt={img.original_filename ?? "Snag photo"}
                         className="w-full h-40 object-cover rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary-500"
                         onClick={() =>
                           setLightboxImage(getMediaUrl(img.minio_key))
                         }
                       />
-                      {img.caption && (
-                        <p className="text-xs text-gray-500 mt-1 truncate">
-                          {img.caption}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -272,29 +253,12 @@ export default function InspectionDetailPage() {
                       className="flex-1 h-10"
                     />
                     <div className="text-xs text-gray-500 shrink-0">
-                      {vn.duration_seconds
-                        ? `${vn.duration_seconds}s`
+                      {vn.duration_ms
+                        ? `${Math.round(vn.duration_ms / 1000)}s`
                         : ""}
                     </div>
                   </div>
                 ))}
-                {entry.voice_notes.some((vn) => vn.transcript) && (
-                  <div className="mt-3">
-                    <p className="text-xs font-medium text-gray-500 mb-1">
-                      Transcripts
-                    </p>
-                    {entry.voice_notes
-                      .filter((vn) => vn.transcript)
-                      .map((vn) => (
-                        <p
-                          key={vn.id}
-                          className="text-sm text-gray-700 bg-gray-50 p-2 rounded mb-1"
-                        >
-                          {vn.transcript}
-                        </p>
-                      ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
@@ -322,7 +286,7 @@ export default function InspectionDetailPage() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Inspector</span>
                 <span className="font-medium">
-                  {entry.inspector_name ?? "Unassigned"}
+                  {entry.inspector_id ?? "Unassigned"}
                 </span>
               </div>
               <Separator />
@@ -348,35 +312,7 @@ export default function InspectionDetailPage() {
               <CardTitle className="text-base">Contractors</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {entry.contractor_assignments.map((ca) => (
-                <div
-                  key={ca.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {ca.contractor_name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Assigned {formatDateTime(ca.assigned_at)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {ca.resolved_at && (
-                      <Badge variant="success">Resolved</Badge>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => unassignMutation.mutate(ca.id)}
-                      className="text-gray-400 hover:text-red-500"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2">
                 <Select
                   className="flex-1"
                   value={selectedContractor}
