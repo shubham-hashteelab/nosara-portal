@@ -1,9 +1,7 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { isBackendConfigured } from "@/api/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 
-import ServerConfigPage from "@/pages/ServerConfigPage";
 import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
 import ProjectListPage from "@/pages/projects/ProjectListPage";
@@ -19,18 +17,8 @@ import UserListPage from "@/pages/users/UserListPage";
 import ContractorListPage from "@/pages/contractors/ContractorListPage";
 import ReportPage from "@/pages/reports/ReportPage";
 
-function RequireBackend() {
-  if (!isBackendConfigured()) {
-    return <Navigate to="/setup" replace />;
-  }
-  return <Outlet />;
-}
-
 function RequireAuth() {
   const { isAuthenticated } = useAuth();
-  if (!isBackendConfigured()) {
-    return <Navigate to="/setup" replace />;
-  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -41,12 +29,7 @@ export default function App() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/setup" element={<ServerConfigPage />} />
-
-      {/* Requires backend configured */}
-      <Route element={<RequireBackend />}>
-        <Route path="/login" element={<LoginPage />} />
-      </Route>
+      <Route path="/login" element={<LoginPage />} />
 
       {/* Requires authentication */}
       <Route element={<RequireAuth />}>
