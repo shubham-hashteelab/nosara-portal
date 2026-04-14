@@ -41,3 +41,39 @@ export async function unassignProject(
     `/api/v1/users/${userId}/assign-project/${projectId}`
   );
 }
+
+export async function assignBuilding(
+  userId: string,
+  buildingId: string
+): Promise<void> {
+  await apiClient.post(
+    `/api/v1/users/${userId}/assign-building/${buildingId}`
+  );
+}
+
+export async function unassignBuilding(
+  userId: string,
+  buildingId: string
+): Promise<void> {
+  await apiClient.delete(
+    `/api/v1/users/${userId}/assign-building/${buildingId}`
+  );
+}
+
+export async function assignFlat(
+  userId: string,
+  flatId: string
+): Promise<void> {
+  await apiClient.post(
+    `/api/v1/users/${userId}/assign-flat/${flatId}`
+  );
+}
+
+export async function unassignFlat(
+  userId: string,
+  flatId: string
+): Promise<void> {
+  await apiClient.delete(
+    `/api/v1/users/${userId}/assign-flat/${flatId}`
+  );
+}

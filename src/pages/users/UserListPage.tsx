@@ -67,21 +67,31 @@ export default function UserListPage() {
     },
     {
       key: "assigned_project_ids",
-      header: "Projects",
-      render: (u) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-gray-600"
-          onClick={(e) => {
-            e.stopPropagation();
-            setAssignTarget(u);
-          }}
-        >
-          <FolderOpen className="h-3.5 w-3.5" />
-          {u.assigned_project_ids?.length ?? 0}
-        </Button>
-      ),
+      header: "Access",
+      render: (u) => {
+        const projects = u.assigned_project_ids?.length ?? 0;
+        const buildings = u.assigned_building_ids?.length ?? 0;
+        const flats = u.assigned_flat_ids?.length ?? 0;
+        return (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-gray-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAssignTarget(u);
+            }}
+          >
+            <FolderOpen className="h-3.5 w-3.5" />
+            {projects > 0 && <span>{projects}P</span>}
+            {buildings > 0 && <span>{buildings}T</span>}
+            {flats > 0 && <span>{flats}F</span>}
+            {projects === 0 && buildings === 0 && flats === 0 && (
+              <span className="text-gray-400">None</span>
+            )}
+          </Button>
+        );
+      },
     },
     {
       key: "created_at",

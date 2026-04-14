@@ -13,6 +13,8 @@ export interface User {
   created_at: string;
   updated_at: string;
   assigned_project_ids: string[];
+  assigned_building_ids: string[];
+  assigned_flat_ids: string[];
 }
 
 export interface UserCreate {
