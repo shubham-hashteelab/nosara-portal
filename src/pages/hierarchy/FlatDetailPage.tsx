@@ -105,17 +105,13 @@ export default function FlatDetailPage() {
     },
   ];
 
-  if (loadingFlat) return <LoadingSpinner />;
-  if (!flat) return <div>Flat not found</div>;
-
-  // Group entries by room for the summary
+  // Hooks must be called before any early returns
   const snagCount =
     entries?.filter((e) => e.status === "FAIL").length ?? 0;
   const passCount =
     entries?.filter((e) => e.status === "PASS").length ?? 0;
   const totalEntries = entries?.length ?? 0;
 
-  // Floor plan data for this flat's type
   const flatLayouts = useMemo(
     () =>
       allLayouts?.filter((l) => l.flat_type === flat?.flat_type) ?? [],
@@ -128,7 +124,6 @@ export default function FlatDetailPage() {
     for (const e of entries) {
       const existing = map.get(e.room_label) ?? { inspected: 0, total: 0 };
       existing.total += 1;
-      // "Inspected" = actively checked as PASS or FAIL (default NA means untouched)
       if (e.status === "PASS" || e.status === "FAIL") {
         existing.inspected += 1;
       }
@@ -140,6 +135,9 @@ export default function FlatDetailPage() {
       totalCount: s.total,
     }));
   }, [entries]);
+
+  if (loadingFlat) return <LoadingSpinner />;
+  if (!flat) return <div>Flat not found</div>;
 
   return (
     <div className="space-y-6">
