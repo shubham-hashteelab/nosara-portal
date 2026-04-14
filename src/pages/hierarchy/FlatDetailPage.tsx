@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getFlat } from "@/api/flats";
 import { listInspectionsByFlat, initializeChecklist } from "@/api/inspections";
+import { listFloorPlanLayouts } from "@/api/checklists";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -9,6 +11,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { SeverityBadge } from "@/components/common/SeverityBadge";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
+import { FloorPlanView, type RoomStatus } from "@/components/common/FloorPlanView";
 import { getMediaUrl } from "@/api/media";
 import { ArrowLeft, ListChecks, Image, Mic } from "lucide-react";
 import { capitalize } from "@/lib/utils";
@@ -29,6 +32,11 @@ export default function FlatDetailPage() {
   const { data: entries, isLoading: loadingEntries } = useQuery({
     queryKey: ["inspections", flatIdNum],
     queryFn: () => listInspectionsByFlat(flatIdNum),
+  });
+
+  const { data: allLayouts } = useQuery({
+    queryKey: ["floorPlanLayouts"],
+    queryFn: () => listFloorPlanLayouts(),
   });
 
   const initMutation = useMutation({
@@ -108,6 +116,32 @@ export default function FlatDetailPage() {
     entries?.filter((e) => e.check_status === CheckStatus.PASS).length ?? 0;
   const totalEntries = entries?.length ?? 0;
 
+  // Floor plan data for this flat's type
+  const flatLayouts = useMemo(
+    () =>
+      allLayouts?.filter((l) => l.flat_type === flat?.flat_type) ?? [],
+    [allLayouts, flat?.flat_type]
+  );
+
+  const roomStatuses: RoomStatus[] = useMemo(() => {
+    if (!entries?.length) return [];
+    const map = new Map<string, { inspected: number; total: number }>();
+    for (const e of entries) {
+      const existing = map.get(e.room_label) ?? { inspected: 0, total: 0 };
+      existing.total += 1;
+      // "Inspected" = actively checked as PASS or FAIL (default NA means untouched)
+      if (e.check_status === CheckStatus.PASS || e.check_status === CheckStatus.FAIL) {
+        existing.inspected += 1;
+      }
+      map.set(e.room_label, existing);
+    }
+    return Array.from(map.entries()).map(([label, s]) => ({
+      label,
+      inspectedCount: s.inspected,
+      totalCount: s.total,
+    }));
+  }, [entries]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -155,6 +189,21 @@ export default function FlatDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Floor Plan */}
+      {flatLayouts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Floor Plan — {flat.flat_type}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FloorPlanView
+              layouts={flatLayouts}
+              roomStatuses={roomStatuses}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Images preview (first few) */}
       {entries && entries.some((e) => e.images.length > 0) && (

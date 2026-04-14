@@ -75,11 +75,9 @@ export async function deleteFlatTypeRoom(id: number): Promise<void> {
 
 /* ───────── Floor Plan Layouts ───────── */
 
-export async function listFloorPlanLayouts(
-  buildingId: number
-): Promise<FloorPlanLayout[]> {
+export async function listFloorPlanLayouts(): Promise<FloorPlanLayout[]> {
   const response = await apiClient.get<FloorPlanLayout[]>(
-    `/api/v1/buildings/${buildingId}/floor-plan-layouts`
+    "/api/v1/floor-plan-layouts"
   );
   return response.data;
 }
@@ -96,4 +94,10 @@ export async function createFloorPlanLayout(
 
 export async function deleteFloorPlanLayout(id: number): Promise<void> {
   await apiClient.delete(`/api/v1/floor-plan-layouts/${id}`);
+}
+
+/* ───────── Seed Hierarchy ───────── */
+
+export async function seedHierarchy(): Promise<void> {
+  await apiClient.post("/api/v1/seed-hierarchy");
 }

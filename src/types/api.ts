@@ -263,20 +263,23 @@ export interface FlatTypeRoomCreate {
 /* ───────── Floor Plan Layout ───────── */
 export interface FloorPlanLayout {
   id: number;
-  building_id: number;
-  floor_number: number;
+  project_id: number | null;
   flat_type: string;
-  flat_label: string;
-  sort_order: number;
-  created_at: string;
+  room_label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface FloorPlanLayoutCreate {
-  building_id: number;
-  floor_number: number;
+  project_id?: number | null;
   flat_type: string;
-  flat_label: string;
-  sort_order?: number;
+  room_label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /* ───────── Dashboard / Stats ───────── */

@@ -28,9 +28,9 @@ export async function assignProject(
   userId: number,
   projectId: number
 ): Promise<void> {
-  await apiClient.post(`/api/v1/users/${userId}/assign-project`, {
-    project_id: projectId,
-  });
+  await apiClient.post(
+    `/api/v1/users/${userId}/assign-project/${projectId}`
+  );
 }
 
 export async function unassignProject(
@@ -38,6 +38,6 @@ export async function unassignProject(
   projectId: number
 ): Promise<void> {
   await apiClient.delete(
-    `/api/v1/users/${userId}/unassign-project/${projectId}`
+    `/api/v1/users/${userId}/assign-project/${projectId}`
   );
 }

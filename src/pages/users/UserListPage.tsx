@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { UserFormDialog } from "./UserFormDialog";
-import { Plus, Pencil } from "lucide-react";
+import { ProjectAssignmentDialog } from "./ProjectAssignmentDialog";
+import { Plus, Pencil, FolderOpen } from "lucide-react";
 import { capitalize, formatDate } from "@/lib/utils";
 import type { UserRole } from "@/types/enums";
 import type { User } from "@/types/api";
@@ -15,6 +16,7 @@ export default function UserListPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
+  const [assignTarget, setAssignTarget] = useState<User | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
@@ -67,9 +69,18 @@ export default function UserListPage() {
       key: "assigned_project_ids",
       header: "Projects",
       render: (u) => (
-        <span className="text-sm text-gray-600">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-gray-600"
+          onClick={(e) => {
+            e.stopPropagation();
+            setAssignTarget(u);
+          }}
+        >
+          <FolderOpen className="h-3.5 w-3.5" />
           {u.assigned_project_ids?.length ?? 0}
-        </span>
+        </Button>
       ),
     },
     {
@@ -153,6 +164,13 @@ export default function UserListPage() {
             data: updateData,
           });
         }}
+      />
+
+      {/* Project assignment dialog */}
+      <ProjectAssignmentDialog
+        open={!!assignTarget}
+        onOpenChange={() => setAssignTarget(null)}
+        user={assignTarget}
       />
     </div>
   );

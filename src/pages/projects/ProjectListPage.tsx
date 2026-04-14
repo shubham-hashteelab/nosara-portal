@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listProjects, createProject, deleteProject } from "@/api/projects";
+import { seedDefaults, seedHierarchy } from "@/api/checklists";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { EmptyState } from "@/components/common/EmptyState";
 import { ProjectFormDialog } from "./ProjectFormDialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Database } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Project } from "@/types/api";
 
@@ -33,6 +35,14 @@ export default function ProjectListPage() {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       setDeleteTarget(null);
     },
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: async () => {
+      await seedHierarchy();
+      await seedDefaults();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
   });
 
   const columns: Column<Project>[] = [
@@ -85,10 +95,22 @@ export default function ProjectListPage() {
             Manage your inspection projects
           </p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
-        </Button>
+        <div className="flex gap-2">
+          {!projects?.length && (
+            <Button
+              variant="outline"
+              onClick={() => seedMutation.mutate()}
+              disabled={seedMutation.isPending}
+            >
+              <Database className="h-4 w-4 mr-2" />
+              {seedMutation.isPending ? "Seeding..." : "Seed Demo Data"}
+            </Button>
+          )}
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
+        </div>
       </div>
 
       <DataTable
