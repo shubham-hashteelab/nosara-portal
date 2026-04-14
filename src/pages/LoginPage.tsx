@@ -41,7 +41,7 @@ export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const [loginError, setLoginError] = useState("");
 
-  // Server config — only shown if not yet configured
+  // Server config state
   const [backendConfigured, setBackendConfigured] = useState(
     isBackendConfigured()
   );
@@ -83,11 +83,6 @@ export default function LoginPage() {
   };
 
   const onLogin = async (data: LoginFormData) => {
-    if (!isBackendConfigured()) {
-      setLoginError("Please configure the backend server first.");
-      return;
-    }
-
     setLoginError("");
     try {
       await login(data.username, data.password);
@@ -110,24 +105,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 p-4">
-      <div className="w-full max-w-md space-y-4">
-        {/* Server config — only shown when not configured */}
-        {!backendConfigured && (
+      <div className="w-full max-w-md">
+        {!backendConfigured ? (
+          /* Step 1: Connect to server first */
           <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100">
-                  <Server className="h-5 w-5 text-gray-600" />
-                </div>
-                <div>
-                  <CardTitle className="text-base">Connect to Server</CardTitle>
-                  <CardDescription className="text-xs">
-                    Enter your backend URL to get started
-                  </CardDescription>
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-500 shadow-lg">
+                  <Server className="h-8 w-8 text-white" />
                 </div>
               </div>
+              <CardTitle className="text-2xl">Nosara</CardTitle>
+              <CardDescription>
+                Connect to your backend server to get started
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="server-url">Backend URL</Label>
                 <Input
@@ -141,7 +134,7 @@ export default function LoginPage() {
               {testResult === "success" && (
                 <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-md">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span className="text-sm">Connected and saved</span>
+                  <span className="text-sm">Connected</span>
                 </div>
               )}
               {testResult === "error" && (
@@ -162,72 +155,84 @@ export default function LoginPage() {
                 {isTesting ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
-                Test & Save
+                Test Connection & Continue
               </Button>
             </CardContent>
           </Card>
-        )}
-
-        {/* Login Card */}
-        <Card>
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-500 shadow-lg">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl">Nosara</CardTitle>
-            <CardDescription>
-              Sign in to your manager account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onLogin)} className="space-y-4">
-              {loginError && (
-                <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded-md">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span className="text-sm">{loginError}</span>
+        ) : (
+          /* Step 2: Login (only after server is configured) */
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-500 shadow-lg">
+                  <Building2 className="h-8 w-8 text-white" />
                 </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  placeholder="Enter your username"
-                  {...register("username")}
-                />
-                {errors.username && (
-                  <p className="text-sm text-red-500">
-                    {errors.username.message}
-                  </p>
-                )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-500">
-                    {errors.password.message}
-                  </p>
+              <CardTitle className="text-2xl">Nosara</CardTitle>
+              <CardDescription>
+                Sign in to your manager account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit(onLogin)} className="space-y-4">
+                {loginError && (
+                  <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-2 rounded-md">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span className="text-sm">{loginError}</span>
+                  </div>
                 )}
-              </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
-                Sign In
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    placeholder="Enter your username"
+                    {...register("username")}
+                  />
+                  {errors.username && (
+                    <p className="text-sm text-red-500">
+                      {errors.username.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    {...register("password")}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-red-500">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
+                  Sign In
+                </Button>
+
+                <button
+                  type="button"
+                  className="w-full text-center text-sm text-gray-500 hover:text-gray-700"
+                  onClick={() => setBackendConfigured(false)}
+                >
+                  Change server
+                </button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
