@@ -5,6 +5,7 @@ import { listBuildingsByProject } from "@/api/buildings";
 import { listFlatsByFloor } from "@/api/flats";
 import { listFloorsByBuilding } from "@/api/floors";
 import {
+  getUser,
   assignProject,
   unassignProject,
   assignBuilding,
@@ -47,6 +48,16 @@ export function ProjectAssignmentDialog({
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [expandedBuilding, setExpandedBuilding] = useState<string | null>(null);
 
+  // Live user data — refetches after every mutation
+  const { data: liveUser } = useQuery({
+    queryKey: ["user", user?.id],
+    queryFn: () => getUser(user!.id),
+    enabled: open && !!user,
+  });
+
+  // Use live data if available, fall back to prop
+  const currentUser = liveUser ?? user;
+
   const { data: projects, isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: listProjects,
@@ -65,8 +76,10 @@ export function ProjectAssignmentDialog({
     enabled: !!expandedBuilding,
   });
 
-  const invalidate = () =>
+  const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["users"] });
+    queryClient.invalidateQueries({ queryKey: ["user", user?.id] });
+  };
 
   const projectMutation = useMutation({
     mutationFn: ({
@@ -112,9 +125,9 @@ export function ProjectAssignmentDialog({
 
   if (!user) return null;
 
-  const assignedProjects = new Set(user.assigned_project_ids ?? []);
-  const assignedBuildings = new Set(user.assigned_building_ids ?? []);
-  const assignedFlats = new Set(user.assigned_flat_ids ?? []);
+  const assignedProjects = new Set(currentUser?.assigned_project_ids ?? []);
+  const assignedBuildings = new Set(currentUser?.assigned_building_ids ?? []);
+  const assignedFlats = new Set(currentUser?.assigned_flat_ids ?? []);
 
   const totalAssignments =
     assignedProjects.size + assignedBuildings.size + assignedFlats.size;
@@ -124,7 +137,7 @@ export function ProjectAssignmentDialog({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Access Control — {user.full_name}
+            Access Control — {currentUser?.full_name}
             {totalAssignments > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {assignedProjects.size} projects, {assignedBuildings.size}{" "}
