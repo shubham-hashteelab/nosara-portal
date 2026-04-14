@@ -6,16 +6,9 @@ export async function login(
   username: string,
   password: string
 ): Promise<LoginResponse> {
-  const formData = new URLSearchParams();
-  formData.append("username", username);
-  formData.append("password", password);
-
   const response = await apiClient.post<LoginResponse>(
     "/api/v1/auth/login",
-    formData,
-    {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    }
+    { username, password }
   );
   return response.data;
 }
