@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,8 +9,9 @@ import {
   updateTemplate,
   deleteTemplate,
   seedDefaults,
+  listFlatTypeRooms,
 } from "@/api/checklists";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +31,7 @@ import {
 import { Plus, Trash2, Pencil, Download, ListChecks } from "lucide-react";
 import { capitalize } from "@/lib/utils";
 import { RoomType, ChecklistCategory } from "@/types/enums";
-import type { ChecklistTemplate } from "@/types/api";
+import type { ChecklistTemplate, FlatTypeRoom } from "@/types/api";
 import { Link } from "react-router-dom";
 
 const templateSchema = z.object({
@@ -46,12 +47,19 @@ export default function ChecklistTemplatePage() {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ChecklistTemplate | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ChecklistTemplate | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ChecklistTemplate | null>(
+    null
+  );
   const [seedConfirm, setSeedConfirm] = useState(false);
 
-  const { data: templates, isLoading } = useQuery({
+  const { data: templates, isLoading: loadingTemplates } = useQuery({
     queryKey: ["checklist-templates"],
     queryFn: listTemplates,
+  });
+
+  const { data: flatTypeRooms, isLoading: loadingRooms } = useQuery({
+    queryKey: ["flat-type-rooms"],
+    queryFn: () => listFlatTypeRooms(),
   });
 
   const createMutation = useMutation({
@@ -83,6 +91,7 @@ export default function ChecklistTemplatePage() {
     mutationFn: seedDefaults,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["checklist-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["flat-type-rooms"] });
       setSeedConfirm(false);
     },
   });
@@ -109,19 +118,39 @@ export default function ChecklistTemplatePage() {
       : undefined,
   });
 
-  // Group templates by room type
-  const grouped = (templates ?? []).reduce<
-    Record<string, ChecklistTemplate[]>
-  >((acc, t) => {
-    if (!acc[t.room_type]) acc[t.room_type] = [];
-    acc[t.room_type].push(t);
-    return acc;
-  }, {});
+  // Group templates by room_type for lookup
+  const templatesByRoomType = useMemo(() => {
+    const map: Record<string, ChecklistTemplate[]> = {};
+    for (const t of templates ?? []) {
+      if (!map[t.room_type]) map[t.room_type] = [];
+      map[t.room_type].push(t);
+    }
+    // Sort each group
+    for (const key of Object.keys(map)) {
+      map[key].sort((a, b) => a.sort_order - b.sort_order);
+    }
+    return map;
+  }, [templates]);
 
-  const roomTypes = Object.values(RoomType);
-  const defaultTab = roomTypes.find((rt) => grouped[rt]?.length) ?? roomTypes[0];
+  // Group rooms by flat_type
+  const roomsByFlatType = useMemo(() => {
+    const map: Record<string, FlatTypeRoom[]> = {};
+    for (const r of flatTypeRooms ?? []) {
+      if (!map[r.flat_type]) map[r.flat_type] = [];
+      map[r.flat_type].push(r);
+    }
+    for (const key of Object.keys(map)) {
+      map[key].sort((a, b) => a.sort_order - b.sort_order);
+    }
+    return map;
+  }, [flatTypeRooms]);
 
-  if (isLoading) return <LoadingSpinner />;
+  const flatTypes = Object.keys(roomsByFlatType).sort();
+  const defaultTab = flatTypes[0] ?? "";
+
+  if (loadingTemplates || loadingRooms) return <LoadingSpinner />;
+
+  const totalItems = templates?.length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -131,7 +160,7 @@ export default function ChecklistTemplatePage() {
             Checklist Templates
           </h1>
           <p className="text-sm text-gray-500">
-            Define inspection items for each room type and category
+            {totalItems} inspection items across {flatTypes.length} flat types
           </p>
         </div>
         <div className="flex gap-2">
@@ -152,79 +181,111 @@ export default function ChecklistTemplatePage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <Tabs defaultValue={defaultTab}>
-            <TabsList className="flex flex-wrap">
-              {roomTypes.map((rt) => (
-                <TabsTrigger key={rt} value={rt}>
-                  {capitalize(rt)}
-                  {grouped[rt] && (
-                    <Badge variant="secondary" className="ml-1.5 text-xs">
-                      {grouped[rt].length}
-                    </Badge>
-                  )}
+      {flatTypes.length === 0 ? (
+        <Card>
+          <CardContent className="p-8">
+            <EmptyState
+              title="No flat types defined"
+              description="Seed defaults or add room definitions to get started."
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <Tabs defaultValue={defaultTab}>
+          <TabsList className="flex flex-wrap">
+            {flatTypes.map((ft) => {
+              const rooms = roomsByFlatType[ft] ?? [];
+              const itemCount = rooms.reduce(
+                (sum, r) => sum + (templatesByRoomType[r.room_type]?.length ?? 0),
+                0
+              );
+              return (
+                <TabsTrigger key={ft} value={ft}>
+                  {ft}
+                  <Badge variant="secondary" className="ml-1.5 text-xs">
+                    {rooms.length} rooms / {itemCount} items
+                  </Badge>
                 </TabsTrigger>
-              ))}
-            </TabsList>
+              );
+            })}
+          </TabsList>
 
-            {roomTypes.map((rt) => (
-              <TabsContent key={rt} value={rt}>
-                {!grouped[rt]?.length ? (
-                  <EmptyState
-                    title="No items"
-                    description={`No checklist items for ${capitalize(rt)} yet.`}
-                  />
-                ) : (
-                  <div className="space-y-2 mt-4">
-                    {grouped[rt]
-                      .sort((a, b) => a.sort_order - b.sort_order)
-                      .map((t) => (
-                        <div
-                          key={t.id}
-                          className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-400 w-6">
-                              {t.sort_order}
-                            </span>
-                            <div>
-                              <p className="text-sm font-medium">
-                                {t.item_name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {capitalize(t.category)}
-                              </p>
-                            </div>
+          {flatTypes.map((ft) => {
+            const rooms = roomsByFlatType[ft] ?? [];
+            return (
+              <TabsContent key={ft} value={ft} className="space-y-4 mt-4">
+                {rooms.map((room) => {
+                  const items = templatesByRoomType[room.room_type] ?? [];
+                  return (
+                    <Card key={room.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          {room.label}
+                          <Badge variant="secondary" className="text-xs font-normal">
+                            {capitalize(room.room_type)}
+                          </Badge>
+                          <span className="text-xs text-gray-400 font-normal">
+                            {items.length} items
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {items.length === 0 ? (
+                          <p className="text-sm text-gray-400">
+                            No checklist items for {capitalize(room.room_type)}.
+                          </p>
+                        ) : (
+                          <div className="space-y-1">
+                            {items.map((t) => (
+                              <div
+                                key={t.id}
+                                className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs text-gray-400 w-5 text-right">
+                                    {t.sort_order}
+                                  </span>
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {t.item_name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {capitalize(t.category)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {!t.is_active && (
+                                    <Badge variant="secondary">Inactive</Badge>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setEditTarget(t)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5 text-gray-400" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setDeleteTarget(t)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-500" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-2">
-                            {!t.is_active && (
-                              <Badge variant="secondary">Inactive</Badge>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditTarget(t)}
-                            >
-                              <Pencil className="h-4 w-4 text-gray-400" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeleteTarget(t)}
-                            >
-                              <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-500" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+            );
+          })}
+        </Tabs>
+      )}
 
       {/* Add dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
@@ -242,7 +303,7 @@ export default function ChecklistTemplatePage() {
               <div className="space-y-2">
                 <Label>Room Type</Label>
                 <Select {...form.register("room_type")}>
-                  {roomTypes.map((rt) => (
+                  {Object.values(RoomType).map((rt) => (
                     <option key={rt} value={rt}>
                       {capitalize(rt)}
                     </option>
@@ -358,7 +419,7 @@ export default function ChecklistTemplatePage() {
         open={seedConfirm}
         onOpenChange={setSeedConfirm}
         title="Seed Default Templates"
-        description="This will add default checklist items. Existing items will not be affected."
+        description="This will add default checklist items, room definitions, and floor plan layouts."
         confirmLabel="Seed Defaults"
         variant="default"
         onConfirm={() => seedMutation.mutate()}
