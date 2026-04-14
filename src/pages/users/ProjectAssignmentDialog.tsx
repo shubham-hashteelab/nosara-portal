@@ -32,7 +32,7 @@ export function ProjectAssignmentDialog({
   });
 
   const assignMutation = useMutation({
-    mutationFn: (projectId: number) =>
+    mutationFn: (projectId: string) =>
       assignProject(user!.id, projectId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -40,7 +40,7 @@ export function ProjectAssignmentDialog({
   });
 
   const unassignMutation = useMutation({
-    mutationFn: (projectId: number) =>
+    mutationFn: (projectId: string) =>
       unassignProject(user!.id, projectId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

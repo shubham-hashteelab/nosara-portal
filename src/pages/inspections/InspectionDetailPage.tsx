@@ -88,7 +88,7 @@ export default function InspectionDetailPage() {
   });
 
   const assignMutation = useMutation({
-    mutationFn: (contractorId: number) =>
+    mutationFn: (contractorId: string) =>
       assignContractorToSnag(entryIdNum, contractorId),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["inspection", entryIdNum] }),
