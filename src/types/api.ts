@@ -10,14 +10,14 @@ import type {
 
 /* ───────── User ───────── */
 export interface User {
-  id: number;
+  id: string;
   username: string;
   full_name: string;
   role: UserRole;
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  assigned_project_ids: number[];
+  assigned_project_ids: string[];
 }
 
 export interface UserCreate {
@@ -48,7 +48,7 @@ export interface LoginResponse {
 
 /* ───────── Project ───────── */
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   address: string;
   developer_name: string;
@@ -72,8 +72,8 @@ export interface ProjectUpdate {
 
 /* ───────── Building ───────── */
 export interface Building {
-  id: number;
-  project_id: number;
+  id: string;
+  project_id: string;
   name: string;
   total_floors: number;
   total_flats: number;
@@ -82,7 +82,7 @@ export interface Building {
 }
 
 export interface BuildingCreate {
-  project_id: number;
+  project_id: string;
   name: string;
 }
 
@@ -92,8 +92,8 @@ export interface BuildingUpdate {
 
 /* ───────── Floor ───────── */
 export interface Floor {
-  id: number;
-  building_id: number;
+  id: string;
+  building_id: string;
   floor_number: number;
   label: string;
   total_flats: number;
@@ -102,7 +102,7 @@ export interface Floor {
 }
 
 export interface FloorCreate {
-  building_id: number;
+  building_id: string;
   floor_number: number;
   label: string;
 }
@@ -113,8 +113,8 @@ export interface FloorUpdate {
 
 /* ───────── Flat ───────── */
 export interface Flat {
-  id: number;
-  floor_id: number;
+  id: string;
+  floor_id: string;
   flat_number: string;
   flat_type: string;
   inspection_status: InspectionStatus;
@@ -123,7 +123,7 @@ export interface Flat {
 }
 
 export interface FlatCreate {
-  floor_id: number;
+  floor_id: string;
   flat_number: string;
   flat_type: string;
 }
@@ -135,8 +135,8 @@ export interface FlatUpdate {
 
 /* ───────── Inspection Entry ───────── */
 export interface InspectionEntry {
-  id: number;
-  flat_id: number;
+  id: string;
+  flat_id: string;
   room_type: RoomType;
   room_label: string;
   category: ChecklistCategory;
@@ -145,7 +145,7 @@ export interface InspectionEntry {
   severity: Severity | null;
   snag_fix_status: SnagFixStatus | null;
   notes: string | null;
-  inspector_id: number | null;
+  inspector_id: string | null;
   inspector_name: string | null;
   created_at: string;
   updated_at: string;
@@ -163,16 +163,16 @@ export interface InspectionEntryUpdate {
 
 /* ───────── Media ───────── */
 export interface SnagImage {
-  id: number;
-  entry_id: number;
+  id: string;
+  entry_id: string;
   minio_key: string;
   caption: string | null;
   uploaded_at: string;
 }
 
 export interface VoiceNote {
-  id: number;
-  entry_id: number;
+  id: string;
+  entry_id: string;
   minio_key: string;
   duration_seconds: number | null;
   transcript: string | null;
@@ -181,7 +181,7 @@ export interface VoiceNote {
 
 /* ───────── Contractor ───────── */
 export interface Contractor {
-  id: number;
+  id: string;
   name: string;
   trade: string;
   phone: string | null;
@@ -210,9 +210,9 @@ export interface ContractorUpdate {
 }
 
 export interface SnagContractorAssignment {
-  id: number;
-  entry_id: number;
-  contractor_id: number;
+  id: string;
+  entry_id: string;
+  contractor_id: string;
   contractor_name: string;
   assigned_at: string;
   resolved_at: string | null;
@@ -220,7 +220,7 @@ export interface SnagContractorAssignment {
 
 /* ───────── Checklist Template ───────── */
 export interface ChecklistTemplate {
-  id: number;
+  id: string;
   room_type: RoomType;
   category: ChecklistCategory;
   item_label: string;
@@ -245,7 +245,7 @@ export interface ChecklistTemplateUpdate {
 
 /* ───────── Flat Type Rooms ───────── */
 export interface FlatTypeRoom {
-  id: number;
+  id: string;
   flat_type: string;
   room_type: RoomType;
   room_label: string;
@@ -262,8 +262,8 @@ export interface FlatTypeRoomCreate {
 
 /* ───────── Floor Plan Layout ───────── */
 export interface FloorPlanLayout {
-  id: number;
-  project_id: number | null;
+  id: string;
+  project_id: string | null;
   flat_type: string;
   room_label: string;
   x: number;
@@ -273,7 +273,7 @@ export interface FloorPlanLayout {
 }
 
 export interface FloorPlanLayoutCreate {
-  project_id?: number | null;
+  project_id?: string | null;
   flat_type: string;
   room_label: string;
   x: number;
@@ -284,7 +284,7 @@ export interface FloorPlanLayoutCreate {
 
 /* ───────── Dashboard / Stats ───────── */
 export interface ProjectStats {
-  project_id: number;
+  project_id: string;
   project_name: string;
   total_buildings: number;
   total_flats: number;
@@ -302,7 +302,7 @@ export interface ProjectStats {
 }
 
 export interface BuildingStats {
-  building_id: number;
+  building_id: string;
   building_name: string;
   total_flats: number;
   inspected_flats: number;
@@ -312,7 +312,7 @@ export interface BuildingStats {
 }
 
 export interface OverdueSnag {
-  entry_id: number;
+  entry_id: string;
   flat_number: string;
   building_name: string;
   checklist_item: string;
@@ -322,7 +322,7 @@ export interface OverdueSnag {
 }
 
 export interface InspectorActivity {
-  inspector_id: number;
+  inspector_id: string;
   inspector_name: string;
   date: string;
   entries_checked: number;

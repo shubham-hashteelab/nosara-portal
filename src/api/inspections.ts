@@ -2,7 +2,7 @@ import apiClient from "./client";
 import type { InspectionEntry, InspectionEntryUpdate } from "@/types/api";
 
 export async function listInspectionsByFlat(
-  flatId: number
+  flatId: string
 ): Promise<InspectionEntry[]> {
   const response = await apiClient.get<InspectionEntry[]>(
     `/api/v1/flats/${flatId}/inspections`
@@ -11,7 +11,7 @@ export async function listInspectionsByFlat(
 }
 
 export async function getInspectionEntry(
-  entryId: number
+  entryId: string
 ): Promise<InspectionEntry> {
   const response = await apiClient.get<InspectionEntry>(
     `/api/v1/inspections/${entryId}`
@@ -20,7 +20,7 @@ export async function getInspectionEntry(
 }
 
 export async function updateInspectionEntry(
-  entryId: number,
+  entryId: string,
   data: InspectionEntryUpdate
 ): Promise<InspectionEntry> {
   const response = await apiClient.put<InspectionEntry>(
@@ -30,12 +30,12 @@ export async function updateInspectionEntry(
   return response.data;
 }
 
-export async function initializeChecklist(flatId: number): Promise<void> {
+export async function initializeChecklist(flatId: string): Promise<void> {
   await apiClient.post(`/api/v1/flats/${flatId}/initialize-checklist`);
 }
 
 export async function listAllSnags(params?: {
-  project_id?: number;
+  project_id?: string;
   severity?: string;
   category?: string;
   snag_fix_status?: string;

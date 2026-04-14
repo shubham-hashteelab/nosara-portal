@@ -6,7 +6,7 @@ export async function listUsers(): Promise<User[]> {
   return response.data;
 }
 
-export async function getUser(id: number): Promise<User> {
+export async function getUser(id: string): Promise<User> {
   const response = await apiClient.get<User>(`/api/v1/users/${id}`);
   return response.data;
 }
@@ -17,7 +17,7 @@ export async function createUser(data: UserCreate): Promise<User> {
 }
 
 export async function updateUser(
-  id: number,
+  id: string,
   data: UserUpdate
 ): Promise<User> {
   const response = await apiClient.put<User>(`/api/v1/users/${id}`, data);
@@ -25,8 +25,8 @@ export async function updateUser(
 }
 
 export async function assignProject(
-  userId: number,
-  projectId: number
+  userId: string,
+  projectId: string
 ): Promise<void> {
   await apiClient.post(
     `/api/v1/users/${userId}/assign-project/${projectId}`
@@ -34,8 +34,8 @@ export async function assignProject(
 }
 
 export async function unassignProject(
-  userId: number,
-  projectId: number
+  userId: string,
+  projectId: string
 ): Promise<void> {
   await apiClient.delete(
     `/api/v1/users/${userId}/assign-project/${projectId}`

@@ -3,7 +3,7 @@ import apiClient, { getBackendUrl, getToken } from "./client";
 export async function uploadMedia(
   file: File,
   type: "image" | "voice" | "video",
-  entryId: number
+  entryId: string
 ): Promise<{ minio_key: string }> {
   const formData = new FormData();
   formData.append("file", file);

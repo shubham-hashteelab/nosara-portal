@@ -44,7 +44,7 @@ const buildingSchema = z.object({
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const projectId = Number(id);
+  const projectId = id!;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

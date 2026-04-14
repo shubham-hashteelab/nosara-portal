@@ -1,14 +1,14 @@
 import apiClient from "./client";
 import type { Flat, FlatCreate, FlatUpdate } from "@/types/api";
 
-export async function listFlatsByFloor(floorId: number): Promise<Flat[]> {
+export async function listFlatsByFloor(floorId: string): Promise<Flat[]> {
   const response = await apiClient.get<Flat[]>(
     `/api/v1/floors/${floorId}/flats`
   );
   return response.data;
 }
 
-export async function getFlat(id: number): Promise<Flat> {
+export async function getFlat(id: string): Promise<Flat> {
   const response = await apiClient.get<Flat>(`/api/v1/flats/${id}`);
   return response.data;
 }
@@ -19,13 +19,13 @@ export async function createFlat(data: FlatCreate): Promise<Flat> {
 }
 
 export async function updateFlat(
-  id: number,
+  id: string,
   data: FlatUpdate
 ): Promise<Flat> {
   const response = await apiClient.put<Flat>(`/api/v1/flats/${id}`, data);
   return response.data;
 }
 
-export async function deleteFlat(id: number): Promise<void> {
+export async function deleteFlat(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/flats/${id}`);
 }

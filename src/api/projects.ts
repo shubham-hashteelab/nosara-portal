@@ -6,7 +6,7 @@ export async function listProjects(): Promise<Project[]> {
   return response.data;
 }
 
-export async function getProject(id: number): Promise<Project> {
+export async function getProject(id: string): Promise<Project> {
   const response = await apiClient.get<Project>(`/api/v1/projects/${id}`);
   return response.data;
 }
@@ -17,7 +17,7 @@ export async function createProject(data: ProjectCreate): Promise<Project> {
 }
 
 export async function updateProject(
-  id: number,
+  id: string,
   data: ProjectUpdate
 ): Promise<Project> {
   const response = await apiClient.put<Project>(
@@ -27,6 +27,6 @@ export async function updateProject(
   return response.data;
 }
 
-export async function deleteProject(id: number): Promise<void> {
+export async function deleteProject(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/projects/${id}`);
 }

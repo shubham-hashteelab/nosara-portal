@@ -37,7 +37,7 @@ export default function ContractorListPage() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: Parameters<typeof updateContractor>[1];
     }) => updateContractor(id, data),
     onSuccess: () => {

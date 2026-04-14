@@ -29,7 +29,7 @@ export default function InspectionListPage() {
     queryKey: ["snags", projectId, severity, category, fixStatus],
     queryFn: () =>
       listAllSnags({
-        project_id: projectId ? Number(projectId) : undefined,
+        project_id: projectId || undefined,
         severity: severity || undefined,
         category: category || undefined,
         snag_fix_status: fixStatus || undefined,

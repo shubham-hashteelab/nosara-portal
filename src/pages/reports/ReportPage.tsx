@@ -29,7 +29,7 @@ export default function ReportPage() {
     queryFn: listProjects,
   });
 
-  const selectedId = projectId ? Number(projectId) : projects?.[0]?.id ?? null;
+  const selectedId = projectId || projects?.[0]?.id ?? null;
 
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ["projectStats", selectedId],

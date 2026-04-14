@@ -29,7 +29,7 @@ export async function createTemplate(
 }
 
 export async function updateTemplate(
-  id: number,
+  id: string,
   data: ChecklistTemplateUpdate
 ): Promise<ChecklistTemplate> {
   const response = await apiClient.put<ChecklistTemplate>(
@@ -39,7 +39,7 @@ export async function updateTemplate(
   return response.data;
 }
 
-export async function deleteTemplate(id: number): Promise<void> {
+export async function deleteTemplate(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/checklist-templates/${id}`);
 }
 
@@ -69,7 +69,7 @@ export async function createFlatTypeRoom(
   return response.data;
 }
 
-export async function deleteFlatTypeRoom(id: number): Promise<void> {
+export async function deleteFlatTypeRoom(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/flat-type-rooms/${id}`);
 }
 
@@ -92,7 +92,7 @@ export async function createFloorPlanLayout(
   return response.data;
 }
 
-export async function deleteFloorPlanLayout(id: number): Promise<void> {
+export async function deleteFloorPlanLayout(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/floor-plan-layouts/${id}`);
 }
 

@@ -47,7 +47,7 @@ type UpdateForm = z.infer<typeof updateSchema>;
 
 export default function InspectionDetailPage() {
   const { entryId } = useParams<{ entryId: string }>();
-  const entryIdNum = Number(entryId);
+  const entryIdNum = entryId!;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedContractor, setSelectedContractor] = useState("");
@@ -395,7 +395,7 @@ export default function InspectionDetailPage() {
                     !selectedContractor || assignMutation.isPending
                   }
                   onClick={() => {
-                    assignMutation.mutate(Number(selectedContractor));
+                    assignMutation.mutate(selectedContractor);
                     setSelectedContractor("");
                   }}
                 >

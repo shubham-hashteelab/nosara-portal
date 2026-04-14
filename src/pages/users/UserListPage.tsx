@@ -33,7 +33,7 @@ export default function UserListPage() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: { full_name?: string; role?: UserRole; password?: string };
     }) => updateUser(id, data),
     onSuccess: () => {

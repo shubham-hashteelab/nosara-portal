@@ -63,7 +63,7 @@ export default function ChecklistTemplatePage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<TemplateForm> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<TemplateForm> }) =>
       updateTemplate(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["checklist-templates"] });

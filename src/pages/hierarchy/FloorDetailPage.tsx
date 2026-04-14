@@ -31,7 +31,7 @@ const flatSchema = z.object({
 
 export default function FloorDetailPage() {
   const { fid } = useParams<{ bid: string; fid: string }>();
-  const floorId = Number(fid);
+  const floorId = fid!;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

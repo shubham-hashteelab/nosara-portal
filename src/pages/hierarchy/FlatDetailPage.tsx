@@ -20,7 +20,7 @@ import { CheckStatus } from "@/types/enums";
 
 export default function FlatDetailPage() {
   const { flatId } = useParams<{ flatId: string }>();
-  const flatIdNum = Number(flatId);
+  const flatIdNum = flatId!;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

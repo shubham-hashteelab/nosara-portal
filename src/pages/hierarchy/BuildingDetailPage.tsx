@@ -30,8 +30,8 @@ const floorSchema = z.object({
 
 export default function BuildingDetailPage() {
   const { id, bid } = useParams<{ id: string; bid: string }>();
-  const buildingId = Number(bid);
-  const projectId = Number(id);
+  const buildingId = bid!;
+  const projectId = id!;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

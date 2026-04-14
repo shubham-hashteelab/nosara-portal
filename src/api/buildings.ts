@@ -2,7 +2,7 @@ import apiClient from "./client";
 import type { Building, BuildingCreate, BuildingUpdate } from "@/types/api";
 
 export async function listBuildingsByProject(
-  projectId: number
+  projectId: string
 ): Promise<Building[]> {
   const response = await apiClient.get<Building[]>(
     `/api/v1/projects/${projectId}/buildings`
@@ -10,7 +10,7 @@ export async function listBuildingsByProject(
   return response.data;
 }
 
-export async function getBuilding(id: number): Promise<Building> {
+export async function getBuilding(id: string): Promise<Building> {
   const response = await apiClient.get<Building>(`/api/v1/buildings/${id}`);
   return response.data;
 }
@@ -21,7 +21,7 @@ export async function createBuilding(data: BuildingCreate): Promise<Building> {
 }
 
 export async function updateBuilding(
-  id: number,
+  id: string,
   data: BuildingUpdate
 ): Promise<Building> {
   const response = await apiClient.put<Building>(
@@ -31,6 +31,6 @@ export async function updateBuilding(
   return response.data;
 }
 
-export async function deleteBuilding(id: number): Promise<void> {
+export async function deleteBuilding(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/buildings/${id}`);
 }

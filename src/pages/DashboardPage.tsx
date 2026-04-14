@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
 
@@ -63,7 +63,7 @@ export default function DashboardPage() {
           value={projectId?.toString() ?? ""}
           onChange={(e) =>
             setSelectedProjectId(
-              e.target.value ? Number(e.target.value) : null
+              e.target.value || null
             )
           }
         >
