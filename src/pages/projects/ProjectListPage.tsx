@@ -7,7 +7,6 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { EmptyState } from "@/components/common/EmptyState";
 import { ProjectFormDialog } from "./ProjectFormDialog";
 import { Plus, Trash2, Database } from "lucide-react";
 import { formatDate } from "@/lib/utils";

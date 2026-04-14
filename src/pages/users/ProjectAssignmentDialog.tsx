@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Plus, X } from "lucide-react";
 import type { User } from "@/types/api";
