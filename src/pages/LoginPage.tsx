@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  isBackendConfigured,
   setBackendUrl,
   getBackendUrl,
 } from "@/api/client";
