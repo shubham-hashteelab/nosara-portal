@@ -16,6 +16,7 @@ import FlatTypeRoomsPage from "@/pages/checklists/FlatTypeRoomsPage";
 import UserListPage from "@/pages/users/UserListPage";
 import ContractorListPage from "@/pages/contractors/ContractorListPage";
 import ReportPage from "@/pages/reports/ReportPage";
+import SettingsPage from "@/pages/SettingsPage";
 
 function RequireAuth() {
   const { isAuthenticated } = useAuth();
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="users" element={<UserListPage />} />
           <Route path="contractors" element={<ContractorListPage />} />
           <Route path="reports" element={<ReportPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Route>
 

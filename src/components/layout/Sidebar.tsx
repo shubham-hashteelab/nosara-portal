@@ -8,6 +8,7 @@ import {
   Wrench,
   BarChart3,
   Building2,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const navItems = [
   { to: "/users", label: "Users", icon: Users },
   { to: "/contractors", label: "Contractors", icon: Wrench },
   { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 interface SidebarProps {
