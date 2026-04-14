@@ -41,10 +41,8 @@ export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const [loginError, setLoginError] = useState("");
 
-  // Server config state
-  const [backendConfigured, setBackendConfigured] = useState(
-    isBackendConfigured()
-  );
+  // Server config state — always start with config step since RunPod URL changes each restart
+  const [backendConfigured, setBackendConfigured] = useState(false);
   const [serverUrl, setServerUrl] = useState(getBackendUrl() || "");
   const [testResult, setTestResult] = useState<"idle" | "success" | "error">(
     "idle"
