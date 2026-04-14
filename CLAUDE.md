@@ -24,49 +24,82 @@ Snagging inspection system for real estate handover. Three repos, one backend:
 
 ## Critical Conventions
 
-- **Backend URL is runtime-configured via `localStorage`**, NOT env vars. `ServerConfigPage` lets user paste URL and test connection. All API calls go through `src/api/client.ts` which reads base URL from `localStorage`.
-- **Auth:** JWT token in `localStorage`. Axios interceptor attaches it to every request.
+- **Backend URL is runtime-configured via `localStorage`**, NOT env vars. Login page always shows server config step first (RunPod URL changes each restart). All API calls go through `src/api/client.ts` which reads base URL from `localStorage`.
+- **Auth:** JWT token in `localStorage`. Axios interceptor attaches it to every request. 401 responses auto-redirect to login.
 - **Enums:** Use `const` object pattern (not TypeScript `enum` keyword) — required by TypeScript `erasableSyntaxOnly` mode.
+- **All IDs are strings** (backend returns UUIDs). Never use `Number()` on IDs.
+- **HTTP methods:** All updates use `PATCH` (not PUT) to match backend.
+- **Nested create URLs:** Buildings created via `POST /projects/{id}/buildings`, floors via `POST /buildings/{id}/floors`, flats via `POST /floors/{id}/flats`. Parent ID is in URL path, not request body.
+- **Inspection entries:** Endpoint path is `/entries/` not `/inspections/`. Field names: `status` (not `check_status`), `item_name` (not `checklist_item`).
 - **Default creds:** `admin` / `admin123`.
+- **Error boundary** in `main.tsx` catches React crashes and shows the error message instead of white screen.
 
 ## Project Structure
 
 ```
 src/
 ├── api/
-│   ├── client.ts           # Axios instance, dynamic base URL from localStorage, auth interceptor
-│   └── *.ts                # API modules (auth, projects, buildings, etc.)
-├── hooks/                  # React Query hooks
+│   ├── client.ts           # Axios instance, dynamic base URL, auth interceptor
+│   ├── projects.ts         # CRUD (PATCH for updates)
+│   ├── buildings.ts        # Nested under projects for create
+│   ├── floors.ts           # Nested under buildings for create
+│   ├── flats.ts            # Nested under floors for create
+│   ├── inspections.ts      # /entries/ endpoints, initializeChecklist
+│   ├── users.ts            # CRUD + assign/unassign project/building/flat
+│   └── checklists.ts       # Templates, flat type rooms, floor plan layouts, seed
 ├── contexts/AuthContext.tsx
 ├── components/
 │   ├── layout/             # Sidebar, TopBar, MainLayout
-│   ├── common/             # DataTable, StatusBadge, ConfirmDialog
-│   └── charts/             # Dashboard chart components
+│   ├── common/             # DataTable, StatusBadge, SeverityBadge, FloorPlanView, EmptyState
+│   └── charts/             # ProgressDonut, SnagsByCategoryBar, InspectorActivityLine
 ├── pages/
-│   ├── ServerConfigPage    # First screen — paste RunPod URL, test connection
-│   ├── LoginPage, DashboardPage
-│   ├── projects/, hierarchy/, inspections/
-│   ├── checklists/, users/, contractors/, reports/
-└── types/                  # API types, enums
+│   ├── LoginPage.tsx        # Server config + login (always shows URL step first)
+│   ├── DashboardPage.tsx
+│   ├── projects/            # ProjectListPage (+ Seed Demo Data), ProjectDetailPage
+│   ├── hierarchy/           # BuildingDetailPage, FloorDetailPage, FlatDetailPage (+ FloorPlanView)
+│   ├── inspections/         # InspectionListPage, InspectionDetailPage
+│   ├── checklists/          # ChecklistTemplatePage (flat-type tabs), FlatTypeRoomsPage
+│   ├── users/               # UserListPage, UserFormDialog, ProjectAssignmentDialog (hierarchical)
+│   ├── contractors/         # ContractorListPage
+│   └── reports/             # ReportPage
+├── types/
+│   ├── api.ts              # All interfaces — IDs are string, matches backend exactly
+│   └── enums.ts            # CheckStatus, Severity, SnagFixStatus, InspectionStatus, etc.
+└── main.tsx                # App root with ErrorBoundary
 ```
+
+## Key Features
+
+- **Floor Plan View** (`FloorPlanView.tsx`) — SVG-based room layout with progress colors (not started/in progress/completed). Ported from Android's canvas-based version.
+- **Checklist Templates** — organized by flat type tabs (1BHK/2BHK/3BHK), showing rooms and their checklist items.
+- **Hierarchical Access Control** — `ProjectAssignmentDialog` lets managers assign inspectors at project, tower, or flat level. Live updates via `getUser` query after each mutation.
+- **Seed Demo Data** — one-click button on Projects page seeds 5 Godrej projects + checklist defaults.
+- **SPA routing** — `vercel.json` has rewrite rule for client-side routing.
 
 ## Key Routes
 
 ```
-/setup          → ServerConfigPage (if no backend URL configured)
-/login          → LoginPage (redirects to /setup if no URL)
+/login          → Server config + login (always shows URL step)
 /               → Dashboard
-/projects       → Project list → /projects/:id → detail
-/inspections    → All snags (filterable) → /inspections/:id → detail
-/checklists     → Template management
-/users          → User management
+/projects       → Project list (+ Seed Demo Data button)
+/projects/:id   → Project detail (buildings table, stats)
+/projects/:id/buildings/:bid → Building detail (floors table)
+/buildings/:bid/floors/:fid  → Floor detail (flats grid)
+/floors/:fid/flats/:flatId   → Flat detail (floor plan, checklist entries, initialize)
+/inspections    → All snags (filterable)
+/inspections/:entryId → Inspection entry detail (update status, assign contractor)
+/checklists     → Template management (flat-type tabs)
+/checklists/room-definitions → Room definitions per flat type
+/users          → User management + access control
 /contractors    → Contractor management
 /reports        → Reports
+/settings       → Backend URL config
 ```
 
 ## Deployment
 
 - **Vercel** — auto-deploys from `main` branch. Output: `dist/`.
+- `vercel.json` has SPA rewrite rule (`/(.*) → /index.html`).
 - No build-time env vars needed for backend URL (it's runtime).
 
 ## Commands
@@ -74,5 +107,5 @@ src/
 ```bash
 npm install
 npm run dev      # Vite dev server on :5173
-npm run build    # Production build → dist/
+npm run build    # Production build → dist/ (tsc -b && vite build)
 ```
