@@ -143,6 +143,7 @@ export interface InspectionEntry {
   updated_at: string;
   images: SnagImage[];
   voice_notes: VoiceNote[];
+  videos: InspectionVideo[];
 }
 
 export interface InspectionEntryUpdate {
@@ -163,6 +164,14 @@ export interface SnagImage {
 }
 
 export interface VoiceNote {
+  id: string;
+  inspection_entry_id: string;
+  minio_key: string;
+  duration_ms: number;
+  created_at: string;
+}
+
+export interface InspectionVideo {
   id: string;
   inspection_entry_id: string;
   minio_key: string;

@@ -26,6 +26,7 @@ import {
   X,
   Image as ImageIcon,
   Mic,
+  Video,
 } from "lucide-react";
 import { capitalize, formatDateTime } from "@/lib/utils";
 const STATUS_VALUES = ["NA", "PASS", "FAIL"] as const;
@@ -257,6 +258,29 @@ export default function InspectionDetailPage() {
                         ? `${Math.round(vn.duration_ms / 1000)}s`
                         : ""}
                     </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Videos */}
+          {entry.videos?.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Video className="h-4 w-4" />
+                  Videos ({entry.videos.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {entry.videos.map((vid) => (
+                  <div key={vid.id} className="rounded-lg overflow-hidden border">
+                    <video
+                      controls
+                      src={getMediaUrl(vid.minio_key)}
+                      className="w-full max-h-[400px]"
+                    />
                   </div>
                 ))}
               </CardContent>

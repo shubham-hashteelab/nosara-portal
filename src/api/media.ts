@@ -23,5 +23,5 @@ export async function uploadMedia(
 export function getMediaUrl(minioKey: string): string {
   const baseUrl = getBackendUrl();
   const token = getToken();
-  return `${baseUrl}/api/v1/media/${encodeURIComponent(minioKey)}?token=${token}`;
+  return `${baseUrl}/api/v1/files/${minioKey}?token=${token}`;
 }
