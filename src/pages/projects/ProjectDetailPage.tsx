@@ -31,7 +31,6 @@ import {
   Trash2,
   Building2,
   Layers,
-  Home,
 } from "lucide-react";
 import type { Building } from "@/types/api";
 import { useForm } from "react-hook-form";
@@ -143,52 +142,66 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-50">
-              <Building2 className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{project.total_buildings}</p>
+      <Card>
+        <CardContent className="py-6 px-8">
+          <div className="flex items-center justify-center gap-12">
+            {/* Buildings */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                </div>
+                <p className="text-3xl font-bold">{project.total_buildings}</p>
+              </div>
               <p className="text-xs text-gray-500">Buildings</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-50">
-              <Layers className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{project.total_flats}</p>
+
+            {/* Total Flats */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <div className="p-2 rounded-lg bg-green-50">
+                  <Layers className="h-5 w-5 text-green-600" />
+                </div>
+                <p className="text-3xl font-bold">{project.total_flats}</p>
+              </div>
               <p className="text-xs text-gray-500">Total Flats</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-50">
-              <Home className="h-5 w-5 text-yellow-600" />
+
+            {/* Donut */}
+            <div className="w-[180px]">
+              <ProgressDonut
+                completed={stats?.inspected_flats ?? 0}
+                inProgress={stats?.in_progress_flats ?? 0}
+                notStarted={stats?.not_started_flats ?? 0}
+              />
             </div>
-            <div>
-              <p className="text-2xl font-bold">
+
+            {/* Completed */}
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-600">
                 {stats?.inspected_flats ?? 0}
               </p>
-              <p className="text-xs text-gray-500">Inspected</p>
+              <p className="text-xs text-gray-500">Completed</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <ProgressDonut
-              completed={stats?.inspected_flats ?? 0}
-              inProgress={stats?.in_progress_flats ?? 0}
-              notStarted={stats?.not_started_flats ?? 0}
-            />
-          </CardContent>
-        </Card>
-      </div>
+
+            {/* Ongoing */}
+            <div className="text-center">
+              <p className="text-3xl font-bold text-yellow-500">
+                {stats?.in_progress_flats ?? 0}
+              </p>
+              <p className="text-xs text-gray-500">Ongoing</p>
+            </div>
+
+            {/* Not Started */}
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-400">
+                {stats?.not_started_flats ?? 0}
+              </p>
+              <p className="text-xs text-gray-500">Not Started</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Buildings table */}
       <Card>
