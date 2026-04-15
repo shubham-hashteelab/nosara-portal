@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { FloorPlanLayout } from "@/types/api";
 
 const WALL_COLOR = "#78909C";
@@ -5,6 +6,7 @@ const NOT_STARTED_FILL = "#FAFAFA";
 const IN_PROGRESS_FILL = "#E3F2FD";
 const COMPLETED_FILL = "#E8F5E9";
 const COMPLETED_BORDER = "#4CAF50";
+const HOVER_FILL = "#F0F0F0";
 
 export interface RoomStatus {
   label: string;
@@ -16,6 +18,7 @@ interface FloorPlanViewProps {
   layouts: FloorPlanLayout[];
   roomStatuses?: RoomStatus[];
   onRoomClick?: (roomLabel: string) => void;
+  selectedRoom?: string | null;
 }
 
 const CANVAS_W = 1000;
@@ -27,7 +30,10 @@ export function FloorPlanView({
   layouts,
   roomStatuses = [],
   onRoomClick,
+  selectedRoom,
 }: FloorPlanViewProps) {
+  const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
+
   if (layouts.length === 0) return null;
 
   const statusMap = new Map(roomStatuses.map((r) => [r.label, r]));
@@ -61,6 +67,16 @@ export function FloorPlanView({
             }
           }
 
+          const isSelected = selectedRoom === room.room_label;
+          const isHovered = hoveredRoom === room.room_label;
+
+          if (isSelected) {
+            strokeColor = "#3B82F6";
+          } else if (isHovered && onRoomClick) {
+            fill = fill === NOT_STARTED_FILL ? HOVER_FILL : fill;
+            strokeColor = strokeColor ?? "#B0BEC5";
+          }
+
           const progressText =
             status && status.totalCount > 0
               ? `${status.inspectedCount}/${status.totalCount}`
@@ -71,6 +87,8 @@ export function FloorPlanView({
               key={room.room_label}
               className={onRoomClick ? "cursor-pointer" : undefined}
               onClick={() => onRoomClick?.(room.room_label)}
+              onMouseEnter={() => onRoomClick && setHoveredRoom(room.room_label)}
+              onMouseLeave={() => onRoomClick && setHoveredRoom(null)}
             >
               <rect
                 x={x}
@@ -80,7 +98,7 @@ export function FloorPlanView({
                 rx={CORNER_R}
                 fill={fill}
                 stroke={strokeColor}
-                strokeWidth={strokeColor ? WALL_PX : 0}
+                strokeWidth={isSelected ? 4 : strokeColor ? WALL_PX : 0}
               />
               <text
                 x={x + w / 2}

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -12,9 +12,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Hierarchy routes (/buildings/*, /floors/*) are part of the Projects flow
+const PROJECTS_PREFIXES = ["/projects", "/buildings", "/floors"];
+
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/projects", label: "Projects", icon: FolderOpen },
+  { to: "/projects", label: "Projects", icon: FolderOpen, matchPrefixes: PROJECTS_PREFIXES },
   { to: "/inspections", label: "Inspections", icon: ClipboardCheck },
   { to: "/checklists", label: "Checklists", icon: ListChecks },
   { to: "/users", label: "Users", icon: Users },
@@ -28,6 +31,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ className }: SidebarProps) {
+  const { pathname } = useLocation();
+
   return (
     <aside
       className={cn(
@@ -48,19 +53,22 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              cn("sidebar-link", isActive && "sidebar-link-active")
-            }
-          >
-            <item.icon className="h-5 w-5 shrink-0" />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          const extraMatch = item.matchPrefixes?.some((p) => pathname.startsWith(p));
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                cn("sidebar-link", (isActive || extraMatch) && "sidebar-link-active")
+              }
+            >
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* Footer */}
