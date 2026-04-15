@@ -12,6 +12,7 @@ import { SeverityBadge } from "@/components/common/SeverityBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FloorPlanView, type RoomStatus } from "@/components/common/FloorPlanView";
 import { getMediaUrl } from "@/api/media";
+import { InitializeChecklistDialog } from "./InitializeChecklistDialog";
 import { ArrowLeft, ListChecks, Image, Mic, ChevronDown, ChevronRight, X } from "lucide-react";
 import { capitalize } from "@/lib/utils";
 import type { InspectionEntry } from "@/types/api";
@@ -39,13 +40,15 @@ export default function FlatDetailPage() {
 
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const [initDialogOpen, setInitDialogOpen] = useState(false);
   const entriesSectionRef = useRef<HTMLDivElement>(null);
 
   const initMutation = useMutation({
-    mutationFn: () => initializeChecklist(flatIdNum),
+    mutationFn: (templateIds: string[]) => initializeChecklist(flatIdNum, templateIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspections", flatIdNum] });
       queryClient.invalidateQueries({ queryKey: ["flat", flatIdNum] });
+      setInitDialogOpen(false);
     },
   });
 
@@ -141,10 +144,7 @@ export default function FlatDetailPage() {
           </p>
         </div>
         {(!entries || entries.length === 0) && (
-          <Button
-            onClick={() => initMutation.mutate()}
-            disabled={initMutation.isPending}
-          >
+          <Button onClick={() => setInitDialogOpen(true)}>
             <ListChecks className="h-4 w-4 mr-2" />
             Initialize Checklist
           </Button>
@@ -398,6 +398,16 @@ export default function FlatDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Initialize checklist dialog */}
+      <InitializeChecklistDialog
+        open={initDialogOpen}
+        onOpenChange={setInitDialogOpen}
+        flatId={flatIdNum}
+        flatType={flat.flat_type}
+        onConfirm={(templateIds) => initMutation.mutate(templateIds)}
+        loading={initMutation.isPending}
+      />
     </div>
   );
 }

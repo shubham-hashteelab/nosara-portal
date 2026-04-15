@@ -16,6 +16,7 @@ import FlatTypeRoomsPage from "@/pages/checklists/FlatTypeRoomsPage";
 import UserListPage from "@/pages/users/UserListPage";
 import ContractorListPage from "@/pages/contractors/ContractorListPage";
 import ReportPage from "@/pages/reports/ReportPage";
+import FloorPlansPage from "@/pages/floorplans/FloorPlansPage";
 import SettingsPage from "@/pages/SettingsPage";
 
 function RequireAuth() {
@@ -55,6 +56,7 @@ export default function App() {
             path="inspections/:entryId"
             element={<InspectionDetailPage />}
           />
+          <Route path="floor-plans" element={<FloorPlansPage />} />
           <Route path="checklists" element={<ChecklistTemplatePage />} />
           <Route
             path="checklists/room-definitions"

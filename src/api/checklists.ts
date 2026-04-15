@@ -32,7 +32,7 @@ export async function updateTemplate(
   id: string,
   data: ChecklistTemplateUpdate
 ): Promise<ChecklistTemplate> {
-  const response = await apiClient.put<ChecklistTemplate>(
+  const response = await apiClient.patch<ChecklistTemplate>(
     `/api/v1/checklist-templates/${id}`,
     data
   );
