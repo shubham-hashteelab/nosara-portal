@@ -3,9 +3,13 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useServerEvents } from "@/hooks/useServerEvents";
 
 export function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Connect to SSE for real-time updates from backend
+  useServerEvents();
 
   return (
     <div className="flex h-screen overflow-hidden">
