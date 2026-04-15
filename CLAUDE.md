@@ -82,6 +82,7 @@ src/
 - **Media Display** — InspectionDetailPage shows photos (with lightbox), voice notes (audio player), and videos (video player). Media URLs use `?token=` query param auth via `/api/v1/files/{minio_key}`.
 - **Hierarchical Access Control** — `ProjectAssignmentDialog` lets managers assign inspectors at project, tower, or flat level. Live updates via `getUser` query after each mutation.
 - **Seed Demo Data** — one-click button on Projects page seeds 5 Godrej projects + checklist defaults.
+- **Flat Inspection Status** — `flat.inspection_status` (NOT_STARTED/IN_PROGRESS/COMPLETED) is **backend-computed** from entry counts. Portal is a pure pass-through — displays via `StatusBadge`, never computes or mutates it. The separate room-level progress coloring in `FloorPlanView` is computed client-side from entries (independent system).
 - **SPA routing** — `vercel.json` has rewrite rule for client-side routing.
 
 ## Key Routes
