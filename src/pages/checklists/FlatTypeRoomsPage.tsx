@@ -93,7 +93,7 @@ export default function FlatTypeRoomsPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/checklists")}
+          onClick={() => navigate("/blueprints")}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>

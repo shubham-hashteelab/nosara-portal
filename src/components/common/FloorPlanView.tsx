@@ -19,6 +19,7 @@ interface FloorPlanViewProps {
   roomStatuses?: RoomStatus[];
   onRoomClick?: (roomLabel: string) => void;
   selectedRoom?: string | null;
+  compact?: boolean;
 }
 
 const CANVAS_W = 1000;
@@ -31,6 +32,7 @@ export function FloorPlanView({
   roomStatuses = [],
   onRoomClick,
   selectedRoom,
+  compact = false,
 }: FloorPlanViewProps) {
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
 
@@ -43,7 +45,7 @@ export function FloorPlanView({
       <svg
         viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`}
         className="w-full rounded-xl overflow-hidden"
-        style={{ maxHeight: 420 }}
+        style={{ maxHeight: compact ? 180 : 420 }}
       >
         {/* Wall background */}
         <rect width={CANVAS_W} height={CANVAS_H} fill={WALL_COLOR} rx={12} />
@@ -130,11 +132,13 @@ export function FloorPlanView({
       </svg>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
-        <LegendDot color={NOT_STARTED_FILL} borderColor={WALL_COLOR} label="Not started" />
-        <LegendDot color={IN_PROGRESS_FILL} borderColor="#90CAF9" label="In progress" />
-        <LegendDot color={COMPLETED_FILL} borderColor={COMPLETED_BORDER} label="Completed" />
-      </div>
+      {!compact && (
+        <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
+          <LegendDot color={NOT_STARTED_FILL} borderColor={WALL_COLOR} label="Not started" />
+          <LegendDot color={IN_PROGRESS_FILL} borderColor="#90CAF9" label="In progress" />
+          <LegendDot color={COMPLETED_FILL} borderColor={COMPLETED_BORDER} label="Completed" />
+        </div>
+      )}
     </div>
   );
 }

@@ -11,12 +11,11 @@ import FloorDetailPage from "@/pages/hierarchy/FloorDetailPage";
 import FlatDetailPage from "@/pages/hierarchy/FlatDetailPage";
 import InspectionListPage from "@/pages/inspections/InspectionListPage";
 import InspectionDetailPage from "@/pages/inspections/InspectionDetailPage";
-import ChecklistTemplatePage from "@/pages/checklists/ChecklistTemplatePage";
 import FlatTypeRoomsPage from "@/pages/checklists/FlatTypeRoomsPage";
 import UserListPage from "@/pages/users/UserListPage";
 import ContractorListPage from "@/pages/contractors/ContractorListPage";
 import ReportPage from "@/pages/reports/ReportPage";
-import FloorPlansPage from "@/pages/floorplans/FloorPlansPage";
+import BlueprintsPage from "@/pages/blueprints/BlueprintsPage";
 import SettingsPage from "@/pages/SettingsPage";
 
 function RequireAuth() {
@@ -56,8 +55,17 @@ export default function App() {
             path="inspections/:entryId"
             element={<InspectionDetailPage />}
           />
-          <Route path="floor-plans" element={<FloorPlansPage />} />
-          <Route path="checklists" element={<ChecklistTemplatePage />} />
+          <Route path="blueprints" element={<BlueprintsPage />} />
+          <Route path="blueprints/:flatType" element={<BlueprintsPage />} />
+          {/* Legacy paths — redirect to blueprints */}
+          <Route
+            path="floor-plans"
+            element={<Navigate to="/blueprints" replace />}
+          />
+          <Route
+            path="checklists"
+            element={<Navigate to="/blueprints" replace />}
+          />
           <Route
             path="checklists/room-definitions"
             element={<FlatTypeRoomsPage />}
