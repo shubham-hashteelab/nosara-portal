@@ -384,6 +384,62 @@ export interface ProjectsOverviewResponse {
   projects: ProjectOverview[];
 }
 
+/* ───────── Assignment Coverage ───────── */
+export type InspectorSource = "PROJECT" | "BUILDING" | "FLAT";
+
+export interface InspectorRef {
+  id: string;
+  full_name: string;
+  username: string;
+  source: InspectorSource;
+}
+
+export interface FlatCoverage {
+  flat_id: string;
+  flat_number: string;
+  flat_type: string;
+  inspection_status: InspectionStatus;
+  assigned_inspectors: InspectorRef[];
+}
+
+export interface FloorCoverage {
+  floor_id: string;
+  floor_number: number;
+  label: string;
+  total_flats: number;
+  covered_flats: number;
+  unassigned_flats: number;
+  flats: FlatCoverage[];
+}
+
+export interface BuildingCoverage {
+  building_id: string;
+  building_name: string;
+  total_flats: number;
+  covered_flats: number;
+  unassigned_flats: number;
+  building_inspectors: InspectorRef[];
+  floors: FloorCoverage[];
+}
+
+export interface AssignmentCoverageResponse {
+  project_id: string;
+  project_name: string;
+  total_flats: number;
+  covered_flats: number;
+  unassigned_flats: number;
+  project_inspectors: InspectorRef[];
+  buildings: BuildingCoverage[];
+}
+
+export interface UsersSummary {
+  total_users: number;
+  total_managers: number;
+  total_inspectors: number;
+  idle_inspectors: number;
+  total_unassigned_flats: number;
+}
+
 /* ───────── Sync ───────── */
 export interface SyncPullResponse {
   flats: Flat[];

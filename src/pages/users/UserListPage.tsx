@@ -1,31 +1,50 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listUsers, createUser, updateUser } from "@/api/users";
+import { listProjects } from "@/api/projects";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { UserFormDialog } from "./UserFormDialog";
 import { ProjectAssignmentDialog } from "./ProjectAssignmentDialog";
-import { Plus, Pencil, FolderOpen } from "lucide-react";
+import { AccessSummary } from "./AccessSummary";
+import { UserDetailPanel } from "./UserDetailPanel";
+import { UsersSummaryStrip } from "./UsersSummaryStrip";
+import { ProjectCoverageView } from "./ProjectCoverageView";
+import { Plus } from "lucide-react";
 import { capitalize, formatDate } from "@/lib/utils";
 import type { UserRole } from "@/types/enums";
 import type { User } from "@/types/api";
 
 export default function UserListPage() {
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState<"users" | "coverage">("users");
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [assignTarget, setAssignTarget] = useState<User | null>(null);
+  const [detailTarget, setDetailTarget] = useState<User | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: listUsers,
   });
 
+  // Projects are also needed by the Access column to show project names.
+  // We fetch once at page level so the cache is warm for the detail panel
+  // and the coverage view.
+  const { data: projects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: listProjects,
+  });
+
   const createMutation = useMutation({
     mutationFn: createUser,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users-summary"] });
+    },
   });
 
   const updateMutation = useMutation({
@@ -38,13 +57,24 @@ export default function UserListPage() {
     }) => updateUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users-summary"] });
       setEditTarget(null);
     },
   });
 
+  const openAssignFor = (user: User) => {
+    setDetailTarget(null);
+    setAssignTarget(user);
+  };
+
+  const openEditFor = (user: User) => {
+    setDetailTarget(null);
+    setEditTarget(user);
+  };
+
   const columns: Column<User>[] = [
+    { key: "full_name", header: "Name", sortable: true },
     { key: "username", header: "Username", sortable: true },
-    { key: "full_name", header: "Full Name", sortable: true },
     {
       key: "role",
       header: "Role",
@@ -66,32 +96,9 @@ export default function UserListPage() {
       ),
     },
     {
-      key: "assigned_project_ids",
+      key: "access",
       header: "Access",
-      render: (u) => {
-        const projects = u.assigned_project_ids?.length ?? 0;
-        const buildings = u.assigned_building_ids?.length ?? 0;
-        const flats = u.assigned_flat_ids?.length ?? 0;
-        return (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-gray-600"
-            onClick={(e) => {
-              e.stopPropagation();
-              setAssignTarget(u);
-            }}
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
-            {projects > 0 && <span>{projects}P</span>}
-            {buildings > 0 && <span>{buildings}T</span>}
-            {flats > 0 && <span>{flats}F</span>}
-            {projects === 0 && buildings === 0 && flats === 0 && (
-              <span className="text-gray-400">None</span>
-            )}
-          </Button>
-        );
-      },
+      render: (u) => <AccessSummary user={u} projects={projects} />,
     },
     {
       key: "created_at",
@@ -99,22 +106,6 @@ export default function UserListPage() {
       render: (u) => formatDate(u.created_at),
       sortable: true,
       accessor: (u) => u.created_at,
-    },
-    {
-      key: "actions",
-      header: "",
-      render: (u) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            setEditTarget(u);
-          }}
-        >
-          <Pencil className="h-4 w-4 text-gray-400" />
-        </Button>
-      ),
     },
   ];
 
@@ -135,12 +126,41 @@ export default function UserListPage() {
         </Button>
       </div>
 
-      <DataTable
-        data={users ?? []}
-        columns={columns}
-        searchable
-        searchPlaceholder="Search users..."
-        getRowKey={(u) => u.id}
+      <UsersSummaryStrip onReviewUnassigned={() => setTab("coverage")} />
+
+      <Tabs
+        defaultValue="users"
+        value={tab}
+        onValueChange={(v) => setTab(v as "users" | "coverage")}
+      >
+        <TabsList>
+          <TabsTrigger value="users">By User</TabsTrigger>
+          <TabsTrigger value="coverage">By Project</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users" className="mt-4">
+          <DataTable
+            data={users ?? []}
+            columns={columns}
+            searchable
+            searchPlaceholder="Search users..."
+            getRowKey={(u) => u.id}
+            onRowClick={(u) => setDetailTarget(u)}
+          />
+        </TabsContent>
+
+        <TabsContent value="coverage" className="mt-4">
+          <ProjectCoverageView />
+        </TabsContent>
+      </Tabs>
+
+      {/* User detail side panel (click row) */}
+      <UserDetailPanel
+        user={detailTarget}
+        open={!!detailTarget}
+        onOpenChange={(open) => !open && setDetailTarget(null)}
+        onEditAccess={openAssignFor}
+        onEditProfile={openEditFor}
       />
 
       {/* Create dialog */}
@@ -157,14 +177,18 @@ export default function UserListPage() {
         }}
       />
 
-      {/* Edit dialog */}
+      {/* Edit profile dialog */}
       <UserFormDialog
         open={!!editTarget}
         onOpenChange={() => setEditTarget(null)}
         user={editTarget}
         onSubmit={async (data) => {
           if (!editTarget) return;
-          const updateData: { full_name?: string; role?: UserRole; password?: string } = {
+          const updateData: {
+            full_name?: string;
+            role?: UserRole;
+            password?: string;
+          } = {
             full_name: data.full_name,
             role: data.role,
           };
@@ -176,7 +200,7 @@ export default function UserListPage() {
         }}
       />
 
-      {/* Project assignment dialog */}
+      {/* Assignment dialog (opened from detail panel's "Edit access") */}
       <ProjectAssignmentDialog
         open={!!assignTarget}
         onOpenChange={() => setAssignTarget(null)}
