@@ -1,5 +1,10 @@
 import apiClient from "./client";
-import type { User, UserCreate, UserUpdate } from "@/types/api";
+import type {
+  User,
+  UserCreate,
+  UserScopeDetails,
+  UserUpdate,
+} from "@/types/api";
 
 export async function listUsers(): Promise<User[]> {
   const response = await apiClient.get<User[]>("/api/v1/users");
@@ -8,6 +13,15 @@ export async function listUsers(): Promise<User[]> {
 
 export async function getUser(id: string): Promise<User> {
   const response = await apiClient.get<User>(`/api/v1/users/${id}`);
+  return response.data;
+}
+
+export async function getUserScopeDetails(
+  id: string
+): Promise<UserScopeDetails> {
+  const response = await apiClient.get<UserScopeDetails>(
+    `/api/v1/users/${id}/scope-details`
+  );
   return response.data;
 }
 

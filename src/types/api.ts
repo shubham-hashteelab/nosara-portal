@@ -440,6 +440,45 @@ export interface UsersSummary {
   total_unassigned_flats: number;
 }
 
+/* ───────── User Scope Details ───────── */
+export interface ScopedProject {
+  project_id: string;
+  project_name: string;
+  location: string;
+  total_buildings: number;
+  total_flats: number;
+}
+
+export interface ScopedBuilding {
+  building_id: string;
+  building_name: string;
+  project_id: string;
+  project_name: string;
+  total_floors: number;
+  total_flats: number;
+}
+
+export interface ScopedFlat {
+  flat_id: string;
+  flat_number: string;
+  flat_type: string;
+  floor_id: string;
+  floor_number: number;
+  floor_label: string;
+  building_id: string;
+  building_name: string;
+  project_id: string;
+  project_name: string;
+}
+
+export interface UserScopeDetails {
+  user_id: string;
+  role: UserRole;
+  projects: ScopedProject[];
+  buildings: ScopedBuilding[];
+  flats: ScopedFlat[];
+}
+
 /* ───────── Sync ───────── */
 export interface SyncPullResponse {
   flats: Flat[];
