@@ -106,7 +106,7 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div className="rounded-md border border-gray-200">
+      <div className="rounded-2xl border border-gray-100 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">

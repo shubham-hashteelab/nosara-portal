@@ -36,6 +36,15 @@ Snagging inspection system for real estate handover. Three repos, one backend:
 - **Sidebar highlighting:** "Projects" stays highlighted on hierarchy pages (`/buildings/*`, `/floors/*`) via `matchPrefixes` on the nav item. Uses `useLocation` pathname matching.
 - **Media URLs:** Use `getMediaUrl(minioKey)` from `src/api/media.ts`. Builds `{backendUrl}/api/v1/files/{minioKey}?token={jwt}`. Don't `encodeURIComponent` the minio key — slashes must stay as path segments.
 
+## Design System
+
+- **Sidebar** — light theme. White bg, right border `border-gray-200`, gray nav text, active item uses soft `bg-primary-50 text-primary-600` pill. Tokens defined in `tailwind.config.js` under `colors.sidebar.*` and `.sidebar-link` / `.sidebar-link-active` in `src/index.css`.
+- **Cards** — base `Card` component is `rounded-2xl border-gray-100 shadow-sm`. Any custom card-like wrapper (flat tiles in `FloorDetailPage`, tower cards in `TowerProgressCard`, DataTable wrapper) should match: `rounded-2xl border border-gray-100`. Avoid `border-gray-200` for card borders — reserve gray-200 for hard separators.
+- **Tower status pills** — use dot + count + label (no filled background): `<span class="w-1.5 h-1.5 rounded-full bg-*-500" /> {count} {label}`. Severity row follows the same pattern (`StatusDot` in `TowerProgressCard`). Do NOT reintroduce filled pastel pills for status counts.
+- **KPI icon chips** (Dashboard `StatCard`) — keep colored (`bg-blue-50 text-blue-600`, etc.), use `rounded-xl p-3`.
+- **Form inputs** (Input, Select, Textarea) — stay `rounded-md border-gray-300`. Do NOT bump to `rounded-2xl` — inputs have a tighter radius than cards by convention.
+- **Dialogs** — `rounded-2xl shadow-xl`. Matches card radius for visual continuity.
+
 ## Project Structure
 
 ```

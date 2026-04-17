@@ -113,7 +113,7 @@ export default function FloorDetailPage() {
               {flats.map((flat) => (
                 <div
                   key={flat.id}
-                  className="relative group border rounded-lg p-4 cursor-pointer hover:border-primary-300 hover:shadow-sm transition-all"
+                  className="relative group border border-gray-100 rounded-2xl p-4 cursor-pointer hover:border-primary-300 hover:shadow-sm transition-all"
                   onClick={() =>
                     navigate(`/floors/${floorId}/flats/${flat.id}`)
                   }

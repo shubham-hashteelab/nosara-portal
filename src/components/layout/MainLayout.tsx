@@ -20,7 +20,7 @@ export function MainLayout() {
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="p-0 w-64 bg-sidebar-bg">
+        <SheetContent side="left" className="p-0 w-64 bg-white">
           <Sidebar />
         </SheetContent>
       </Sheet>

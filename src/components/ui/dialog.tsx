@@ -91,7 +91,7 @@ function DialogContent({
       <div className="fixed inset-0 bg-black/50" />
       <div
         className={cn(
-          "relative z-50 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg mx-4 max-h-[90vh] overflow-y-auto",
+          "relative z-50 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl mx-4 max-h-[90vh] overflow-y-auto",
           className
         )}
         {...props}

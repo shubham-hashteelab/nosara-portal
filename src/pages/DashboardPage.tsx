@@ -216,7 +216,7 @@ function StatCard({
               <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
             )}
           </div>
-          <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
+          <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
         </div>
       </CardContent>
     </Card>

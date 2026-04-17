@@ -20,11 +20,12 @@ export default {
           900: "#06152b",
         },
         sidebar: {
-          bg: "#1e293b",
-          hover: "#334155",
-          active: "#1a73e8",
-          text: "#cbd5e1",
-          heading: "#f1f5f9",
+          bg: "#ffffff",
+          hover: "#f3f4f6",
+          active: "#eff6ff",
+          text: "#4b5563",
+          heading: "#111827",
+          border: "#e5e7eb",
         },
       },
       fontFamily: {

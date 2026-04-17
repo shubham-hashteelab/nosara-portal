@@ -32,7 +32,7 @@ export function TowerProgressCard(props: Props) {
       <button
         type="button"
         onClick={goToTower}
-        className="group flex flex-col items-center justify-start rounded-lg border border-gray-200 bg-white p-3 min-w-[140px] hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+        className="group flex flex-col items-center justify-start rounded-2xl border border-gray-100 bg-white p-3 min-w-[140px] hover:border-primary-200 hover:shadow-md transition-all cursor-pointer"
       >
         <ProgressDonut
           completed={tower.inspected_flats}
@@ -61,12 +61,12 @@ export function TowerProgressCard(props: Props) {
       <button
         type="button"
         onClick={goToTower}
-        className="w-full flex flex-col items-center rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer text-left"
+        className="w-full flex flex-col items-center rounded-2xl border border-gray-100 bg-white p-4 hover:border-primary-200 hover:shadow-md transition-all cursor-pointer text-left"
       >
         {/* Header */}
         <div className="w-full flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded bg-blue-50 text-blue-600 shrink-0">
+            <div className="p-1.5 rounded-lg bg-primary-50 text-primary-600 shrink-0">
               <Building2 className="h-3.5 w-3.5" />
             </div>
             <p className="text-sm font-semibold text-gray-900 truncate">
@@ -88,42 +88,18 @@ export function TowerProgressCard(props: Props) {
           showLabel={false}
         />
 
-        {/* Flat status row */}
-        <div className="w-full mt-2 grid grid-cols-3 gap-1 text-[10px] text-center">
-          <FlatCountPill
-            label="Done"
-            count={tw.inspected_flats}
-            color="text-green-600 bg-green-50"
-          />
-          <FlatCountPill
-            label="Active"
-            count={tw.in_progress_flats}
-            color="text-yellow-700 bg-yellow-50"
-          />
-          <FlatCountPill
-            label="Pending"
-            count={tw.not_started_flats}
-            color="text-gray-600 bg-gray-100"
-          />
+        {/* Flat status row — dot + count + label, no fill */}
+        <div className="w-full mt-3 flex items-center justify-between gap-2 text-[11px]">
+          <StatusDot color="bg-green-500" count={tw.inspected_flats} label="Done" />
+          <StatusDot color="bg-yellow-500" count={tw.in_progress_flats} label="Active" />
+          <StatusDot color="bg-gray-300" count={tw.not_started_flats} label="Pending" />
         </div>
 
         {/* Snag severity dots */}
-        <div className="w-full mt-2 flex items-center justify-between gap-1 text-[11px]">
-          <SeverityDot
-            color="bg-red-500"
-            count={tw.critical_snags}
-            label="Crit"
-          />
-          <SeverityDot
-            color="bg-orange-500"
-            count={tw.major_snags}
-            label="Major"
-          />
-          <SeverityDot
-            color="bg-yellow-500"
-            count={tw.minor_snags}
-            label="Minor"
-          />
+        <div className="w-full mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-1 text-[11px]">
+          <StatusDot color="bg-red-500" count={tw.critical_snags} label="Crit" />
+          <StatusDot color="bg-orange-500" count={tw.major_snags} label="Major" />
+          <StatusDot color="bg-yellow-500" count={tw.minor_snags} label="Minor" />
           <span className="text-[10px] text-gray-500 tabular-nums">
             {tw.open_snags} open
           </span>
@@ -135,7 +111,7 @@ export function TowerProgressCard(props: Props) {
         className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150 z-30 pointer-events-none"
         role="tooltip"
       >
-        <div className="rounded-lg border border-gray-200 bg-white shadow-xl p-3">
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-xl p-3">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-semibold text-gray-700">
               {tw.building_name} · Floor breakdown
@@ -147,30 +123,13 @@ export function TowerProgressCard(props: Props) {
           <FloorProgressList floors={floors} />
         </div>
         {/* Arrow */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 w-2 h-2 rotate-45 bg-white border-r border-b border-gray-200" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 w-2 h-2 rotate-45 bg-white border-r border-b border-gray-100" />
       </div>
     </div>
   );
 }
 
-function FlatCountPill({
-  label,
-  count,
-  color,
-}: {
-  label: string;
-  count: number;
-  color: string;
-}) {
-  return (
-    <div className={`rounded px-1 py-0.5 ${color}`}>
-      <div className="font-semibold tabular-nums">{count}</div>
-      <div className="text-[9px] opacity-80">{label}</div>
-    </div>
-  );
-}
-
-function SeverityDot({
+function StatusDot({
   color,
   count,
   label,
@@ -180,10 +139,10 @@ function SeverityDot({
   label: string;
 }) {
   return (
-    <span className="flex items-center gap-1">
-      <span className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="tabular-nums text-gray-700">{count}</span>
-      <span className="text-[10px] text-gray-400">{label}</span>
+    <span className="flex items-center gap-1.5">
+      <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
+      <span className="font-semibold tabular-nums text-gray-900">{count}</span>
+      <span className="text-gray-500">{label}</span>
     </span>
   );
 }

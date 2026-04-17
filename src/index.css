@@ -16,11 +16,11 @@
 
 @layer components {
   .sidebar-link {
-    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-text transition-all hover:bg-sidebar-hover hover:text-white;
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-text transition-colors hover:bg-sidebar-hover hover:text-sidebar-heading;
   }
 
   .sidebar-link-active {
-    @apply bg-sidebar-active text-white;
+    @apply bg-sidebar-active text-primary-600 hover:bg-sidebar-active hover:text-primary-600;
   }
 }
 
