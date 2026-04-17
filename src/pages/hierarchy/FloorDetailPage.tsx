@@ -3,10 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getFloor } from "@/api/floors";
 import { listFlatsByFloor, createFlat, deleteFlat } from "@/api/flats";
+import { listFlatTypeRooms } from "@/api/checklists";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -47,6 +49,15 @@ export default function FloorDetailPage() {
     queryKey: ["flats", floorId],
     queryFn: () => listFlatsByFloor(floorId),
   });
+
+  const { data: flatTypeRooms } = useQuery({
+    queryKey: ["flatTypeRooms"],
+    queryFn: () => listFlatTypeRooms(),
+  });
+
+  const availableFlatTypes = Array.from(
+    new Set((flatTypeRooms ?? []).map((r) => r.flat_type))
+  ).sort();
 
   const createFlatMutation = useMutation({
     mutationFn: (data: { flat_number: string; flat_type: string }) =>
@@ -170,10 +181,21 @@ export default function FloorDetailPage() {
             </div>
             <div className="space-y-2">
               <Label>Flat Type</Label>
-              <Input
-                placeholder="e.g., 2BHK, 3BHK"
+              <Select
                 {...flatForm.register("flat_type")}
-              />
+                disabled={availableFlatTypes.length === 0}
+              >
+                <option value="">
+                  {availableFlatTypes.length === 0
+                    ? "No floor plans available"
+                    : "Select a floor plan"}
+                </option>
+                {availableFlatTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </Select>
               {flatForm.formState.errors.flat_type && (
                 <p className="text-sm text-red-500">
                   {flatForm.formState.errors.flat_type.message}
