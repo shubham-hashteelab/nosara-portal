@@ -30,37 +30,6 @@ export async function updateInspectionEntry(
   return response.data;
 }
 
-export interface ChecklistPreviewItem {
-  template_id: string;
-  category: string;
-  item_name: string;
-  sort_order: number;
-}
-
-export interface ChecklistPreviewRoom {
-  room_label: string;
-  room_type: string;
-  items: ChecklistPreviewItem[];
-}
-
-export async function getChecklistPreview(
-  flatId: string
-): Promise<ChecklistPreviewRoom[]> {
-  const response = await apiClient.get<ChecklistPreviewRoom[]>(
-    `/api/v1/flats/${flatId}/checklist-preview`
-  );
-  return response.data;
-}
-
-export async function initializeChecklist(
-  flatId: string,
-  templateIds?: string[]
-): Promise<void> {
-  await apiClient.post(`/api/v1/entries/${flatId}/initialize-checklist`,
-    templateIds ? { template_ids: templateIds } : undefined
-  );
-}
-
 export async function listAllSnags(_params?: {
   project_id?: string;
   severity?: string;

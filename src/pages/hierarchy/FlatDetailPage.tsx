@@ -1,8 +1,8 @@
 import { useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getFlat } from "@/api/flats";
-import { listInspectionsByFlat, initializeChecklist } from "@/api/inspections";
+import { listInspectionsByFlat } from "@/api/inspections";
 import { listFloorPlanLayouts } from "@/api/checklists";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,7 @@ import { SeverityBadge } from "@/components/common/SeverityBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FloorPlanView, type RoomStatus } from "@/components/common/FloorPlanView";
 import { getMediaUrl } from "@/api/media";
-import { InitializeChecklistDialog } from "./InitializeChecklistDialog";
-import { ArrowLeft, ListChecks, Image, Mic, ChevronDown, ChevronRight, X } from "lucide-react";
+import { ArrowLeft, Image, Mic, ChevronDown, ChevronRight, X } from "lucide-react";
 import { capitalize } from "@/lib/utils";
 import type { InspectionEntry } from "@/types/api";
 
@@ -21,7 +20,6 @@ export default function FlatDetailPage() {
   const { flatId } = useParams<{ flatId: string }>();
   const flatIdNum = flatId!;
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const { data: flat, isLoading: loadingFlat } = useQuery({
     queryKey: ["flat", flatIdNum],
@@ -40,17 +38,7 @@ export default function FlatDetailPage() {
 
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
-  const [initDialogOpen, setInitDialogOpen] = useState(false);
   const entriesSectionRef = useRef<HTMLDivElement>(null);
-
-  const initMutation = useMutation({
-    mutationFn: (templateIds: string[]) => initializeChecklist(flatIdNum, templateIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inspections", flatIdNum] });
-      queryClient.invalidateQueries({ queryKey: ["flat", flatIdNum] });
-      setInitDialogOpen(false);
-    },
-  });
 
   // Hooks must be called before any early returns
   const snagCount =
@@ -143,12 +131,6 @@ export default function FlatDetailPage() {
             <StatusBadge status={flat.inspection_status} />
           </p>
         </div>
-        {(!entries || entries.length === 0) && (
-          <Button onClick={() => setInitDialogOpen(true)}>
-            <ListChecks className="h-4 w-4 mr-2" />
-            Initialize Checklist
-          </Button>
-        )}
       </div>
 
       {/* Summary */}
@@ -242,7 +224,7 @@ export default function FlatDetailPage() {
             ) : !entries?.length ? (
               <EmptyState
                 title="No inspection entries"
-                description="Initialize the checklist to create inspection entries for this flat."
+                description="This flat's type has no rooms or checklist items yet. Define them in Blueprints to auto-populate."
               />
             ) : (
               <div className="space-y-3">
@@ -399,15 +381,6 @@ export default function FlatDetailPage() {
         </Card>
       </div>
 
-      {/* Initialize checklist dialog */}
-      <InitializeChecklistDialog
-        open={initDialogOpen}
-        onOpenChange={setInitDialogOpen}
-        flatId={flatIdNum}
-        flatType={flat.flat_type}
-        onConfirm={(templateIds) => initMutation.mutate(templateIds)}
-        loading={initMutation.isPending}
-      />
     </div>
   );
 }
