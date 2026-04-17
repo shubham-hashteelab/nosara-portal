@@ -54,7 +54,8 @@ src/
 ├── components/
 │   ├── layout/             # Sidebar, TopBar, MainLayout
 │   ├── common/             # DataTable, StatusBadge, SeverityBadge, FloorPlanView, EmptyState
-│   └── charts/             # ProgressDonut, SnagsByCategoryBar, InspectorActivityLine
+│   ├── charts/             # ProgressDonut (size-configurable), SnagsByCategoryBar, InspectorActivityLine
+│   └── dashboard/          # TowerProgressCard (detailed + mini variants), FloorProgressList
 ├── pages/
 │   ├── LoginPage.tsx        # Server config + login (always shows URL step first)
 │   ├── DashboardPage.tsx
@@ -74,6 +75,8 @@ src/
 
 ## Key Features
 
+- **Dashboard Tower Grid** — Single project-wide donut replaced with a responsive grid of per-tower cards (`TowerProgressCard`, detailed variant). Each card: small donut, flat-status pill row (Done/Active/Pending), severity dots (critical/major/minor) + open-snag count. **Hover** reveals a floor-breakdown popover (`FloorProgressList`) with stacked mini bars per floor. **Click** drills into the existing building detail route. Card header shows project-wide completion %. Data from `GET /dashboard/projects/{id}/tower-stats`. All values from DB — no hardcoded towers/floors.
+- **Projects list card layout** — `ProjectListPage` is a card grid, not a table. Each project card shows name/location/totals and a horizontal scrollable strip of `TowerProgressCard` (mini variant). Data from `GET /dashboard/projects-overview` in one call (no N+1). Search, create, delete preserved.
 - **Floor Plan View** (`FloorPlanView.tsx`) — SVG-based room layout with progress colors (not started/in progress/completed). Rooms are **clickable** — clicking a room scrolls to and filters its entries, with blue selection highlight and hover effects.
 - **Room-wise Inspection Entries** — Entries grouped by room with collapsible rows showing stacked progress bars (passed/snags/pending). Expanding shows full checklist table with notes, media counts. Replaces the old flat DataTable.
 - **Initialize Checklist Dialog** — Manager can cherry-pick rooms and items before initializing a flat. Shows all templates for the flat type with checkboxes. Sends selected `template_ids` to backend.

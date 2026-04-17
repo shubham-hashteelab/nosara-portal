@@ -3,6 +3,8 @@ import type {
   ProjectStats,
   BuildingStats,
   InspectorActivity,
+  TowerStatsResponse,
+  ProjectsOverviewResponse,
 } from "@/types/api";
 
 export async function getProjectStats(
@@ -30,6 +32,22 @@ export async function getInspectorActivity(
   const response = await apiClient.get<InspectorActivity[]>(
     `/api/v1/dashboard/projects/${projectId}/inspector-activity`,
     { params: { days } }
+  );
+  return response.data;
+}
+
+export async function getTowerStats(
+  projectId: string
+): Promise<TowerStatsResponse> {
+  const response = await apiClient.get<TowerStatsResponse>(
+    `/api/v1/dashboard/projects/${projectId}/tower-stats`
+  );
+  return response.data;
+}
+
+export async function getProjectsOverview(): Promise<ProjectsOverviewResponse> {
+  const response = await apiClient.get<ProjectsOverviewResponse>(
+    `/api/v1/dashboard/projects-overview`
   );
   return response.data;
 }

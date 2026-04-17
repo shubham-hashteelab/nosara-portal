@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listProjects } from "@/api/projects";
-import { getProjectStats, getInspectorActivity } from "@/api/dashboard";
+import {
+  getProjectStats,
+  getInspectorActivity,
+  getTowerStats,
+} from "@/api/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { ProgressDonut } from "@/components/charts/ProgressDonut";
 import { SnagsByCategoryBar } from "@/components/charts/SnagsByCategoryBar";
 import { InspectorActivityLine } from "@/components/charts/InspectorActivityLine";
+import { TowerProgressCard } from "@/components/dashboard/TowerProgressCard";
 import {
   Building2,
   ClipboardCheck,
@@ -33,6 +37,12 @@ export default function DashboardPage() {
     enabled: !!projectId,
   });
 
+  const { data: towerStats, isLoading: loadingTowers } = useQuery({
+    queryKey: ["towerStats", projectId],
+    queryFn: () => getTowerStats(projectId!),
+    enabled: !!projectId,
+  });
+
   const { data: activity } = useQuery({
     queryKey: ["inspectorActivity", projectId],
     queryFn: () => getInspectorActivity(projectId!, 7),
@@ -54,11 +64,7 @@ export default function DashboardPage() {
         <Select
           className="w-64"
           value={projectId?.toString() ?? ""}
-          onChange={(e) =>
-            setSelectedProjectId(
-              e.target.value || null
-            )
-          }
+          onChange={(e) => setSelectedProjectId(e.target.value || null)}
         >
           {!projects?.length && (
             <option value="">No projects available</option>
@@ -81,7 +87,7 @@ export default function DashboardPage() {
         <LoadingSpinner />
       ) : stats ? (
         <>
-          {/* Stats cards */}
+          {/* KPI strip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="Total Flats"
@@ -110,46 +116,64 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Inspection Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProgressDonut
-                  completed={stats.inspected_flats}
-                  inProgress={stats.in_progress_flats}
-                  notStarted={stats.not_started_flats}
-                />
-                <div className="flex justify-center gap-4 mt-4 text-xs">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                    Completed
+          {/* Tower progress grid */}
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-base">Tower Progress</CardTitle>
+                <p className="text-xs text-gray-500 mt-1">
+                  Hover a tower for the floor breakdown · click to open
+                </p>
+              </div>
+              {towerStats && (
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-gray-900 tabular-nums">
+                    {towerStats.completion_pct}%
                   </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    In Progress
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-gray-300" />
-                    Not Started
+                  <div className="text-[11px] text-gray-500">
+                    project complete
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </CardHeader>
+            <CardContent>
+              {loadingTowers ? (
+                <div className="py-8 flex justify-center">
+                  <LoadingSpinner />
+                </div>
+              ) : !towerStats || towerStats.towers.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  No towers configured for this project yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {towerStats.towers.map((tower) => (
+                    <TowerProgressCard
+                      key={tower.building_id}
+                      tower={tower}
+                      projectId={projectId}
+                    />
+                  ))}
+                </div>
+              )}
+              {/* Legend */}
+              <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+                <LegendDot color="bg-green-500" label="Completed" />
+                <LegendDot color="bg-yellow-500" label="In Progress" />
+                <LegendDot color="bg-gray-300" label="Not Started" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Snags by Category</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SnagsByCategoryBar
-                  data={stats.snags_by_category ?? {}}
-                />
-              </CardContent>
-            </Card>
-          </div>
+          {/* Snags by category */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Snags by Category</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SnagsByCategoryBar data={stats.snags_by_category ?? {}} />
+            </CardContent>
+          </Card>
 
           {/* Activity */}
           <Card>
@@ -196,5 +220,14 @@ function StatCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className={`w-3 h-3 rounded-full ${color}`} />
+      <span>{label}</span>
+    </div>
   );
 }

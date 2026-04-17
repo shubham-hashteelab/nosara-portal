@@ -318,6 +318,72 @@ export interface InspectorActivity {
   snags_found: number;
 }
 
+export interface FloorProgress {
+  floor_id: string;
+  floor_number: number;
+  label: string;
+  total_flats: number;
+  inspected_flats: number;
+  in_progress_flats: number;
+  not_started_flats: number;
+  completion_pct: number;
+  open_snags: number;
+}
+
+export interface TowerProgress {
+  building_id: string;
+  building_name: string;
+  total_flats: number;
+  inspected_flats: number;
+  in_progress_flats: number;
+  not_started_flats: number;
+  completion_pct: number;
+  total_snags: number;
+  open_snags: number;
+  critical_snags: number;
+  major_snags: number;
+  minor_snags: number;
+  floors: FloorProgress[];
+}
+
+export interface TowerStatsResponse {
+  project_id: string;
+  project_name: string;
+  total_flats: number;
+  inspected_flats: number;
+  in_progress_flats: number;
+  not_started_flats: number;
+  completion_pct: number;
+  towers: TowerProgress[];
+}
+
+export interface TowerMini {
+  building_id: string;
+  building_name: string;
+  total_flats: number;
+  inspected_flats: number;
+  in_progress_flats: number;
+  not_started_flats: number;
+  completion_pct: number;
+}
+
+export interface ProjectOverview {
+  project_id: string;
+  project_name: string;
+  location: string;
+  total_buildings: number;
+  total_flats: number;
+  inspected_flats: number;
+  in_progress_flats: number;
+  not_started_flats: number;
+  completion_pct: number;
+  towers: TowerMini[];
+}
+
+export interface ProjectsOverviewResponse {
+  projects: ProjectOverview[];
+}
+
 /* ───────── Sync ───────── */
 export interface SyncPullResponse {
   flats: Flat[];
