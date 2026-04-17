@@ -2,7 +2,6 @@ import apiClient from "./client";
 import type {
   ProjectStats,
   BuildingStats,
-  OverdueSnag,
   InspectorActivity,
 } from "@/types/api";
 
@@ -20,15 +19,6 @@ export async function getBuildingStats(
 ): Promise<BuildingStats[]> {
   const response = await apiClient.get<BuildingStats[]>(
     `/api/v1/dashboard/projects/${projectId}/building-stats`
-  );
-  return response.data;
-}
-
-export async function getOverdueSnags(
-  projectId: string
-): Promise<OverdueSnag[]> {
-  const response = await apiClient.get<OverdueSnag[]>(
-    `/api/v1/dashboard/projects/${projectId}/overdue-snags`
   );
   return response.data;
 }

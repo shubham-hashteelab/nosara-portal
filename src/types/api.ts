@@ -310,16 +310,6 @@ export interface BuildingStats {
   open_snags: number;
 }
 
-export interface OverdueSnag {
-  entry_id: string;
-  flat_number: string;
-  building_name: string;
-  checklist_item: string;
-  severity: string;
-  days_open: number;
-  contractor_name: string | null;
-}
-
 export interface InspectorActivity {
   inspector_id: string;
   inspector_name: string;

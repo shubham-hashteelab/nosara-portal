@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listProjects } from "@/api/projects";
-import { getProjectStats, getInspectorActivity, getOverdueSnags } from "@/api/dashboard";
+import { getProjectStats, getInspectorActivity } from "@/api/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ProgressDonut } from "@/components/charts/ProgressDonut";
 import { SnagsByCategoryBar } from "@/components/charts/SnagsByCategoryBar";
 import { InspectorActivityLine } from "@/components/charts/InspectorActivityLine";
-import { SeverityBadge } from "@/components/common/SeverityBadge";
 import {
   Building2,
   ClipboardCheck,
@@ -37,12 +36,6 @@ export default function DashboardPage() {
   const { data: activity } = useQuery({
     queryKey: ["inspectorActivity", projectId],
     queryFn: () => getInspectorActivity(projectId!, 7),
-    enabled: !!projectId,
-  });
-
-  const { data: overdueSnags } = useQuery({
-    queryKey: ["overdueSnags", projectId],
-    queryFn: () => getOverdueSnags(projectId!),
     enabled: !!projectId,
   });
 
@@ -158,56 +151,17 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Activity & Overdue */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Inspector Activity (7 days)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <InspectorActivityLine data={activity ?? []} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Overdue Snags</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!overdueSnags?.length ? (
-                  <p className="text-sm text-gray-400 py-8 text-center">
-                    No overdue snags
-                  </p>
-                ) : (
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                    {overdueSnags.slice(0, 10).map((snag) => (
-                      <div
-                        key={snag.entry_id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {snag.checklist_item}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {snag.building_name} — {snag.flat_number}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 ml-3">
-                          <SeverityBadge severity={snag.severity} />
-                          <span className="text-xs text-gray-500 whitespace-nowrap">
-                            {snag.days_open}d
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Inspector Activity (7 days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InspectorActivityLine data={activity ?? []} />
+            </CardContent>
+          </Card>
         </>
       ) : null}
     </div>

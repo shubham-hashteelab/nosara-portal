@@ -42,7 +42,6 @@ export function useServerEvents(): void {
           queryClient.invalidateQueries({ queryKey: ["projects"] });
           queryClient.invalidateQueries({ queryKey: ["projectStats"] });
           queryClient.invalidateQueries({ queryKey: ["inspectorActivity"] });
-          queryClient.invalidateQueries({ queryKey: ["overdueSnags"] });
           queryClient.invalidateQueries({ queryKey: ["snags"] });
           queryClient.invalidateQueries({ queryKey: ["inspections"] });
           queryClient.invalidateQueries({ queryKey: ["flat"] });
