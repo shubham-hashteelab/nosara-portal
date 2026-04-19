@@ -12,6 +12,8 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { SnagsByCategoryBar } from "@/components/charts/SnagsByCategoryBar";
 import { InspectorActivityLine } from "@/components/charts/InspectorActivityLine";
 import { TowerProgressCard } from "@/components/dashboard/TowerProgressCard";
+import { TowerDetailModal } from "@/components/dashboard/TowerDetailModal";
+import type { TowerProgress } from "@/types/api";
 import {
   Building2,
   ClipboardCheck,
@@ -23,6 +25,7 @@ export default function DashboardPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const [activeTower, setActiveTower] = useState<TowerProgress | null>(null);
 
   const { data: projects, isLoading: loadingProjects } = useQuery({
     queryKey: ["projects"],
@@ -120,21 +123,16 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-base">Tower Progress</CardTitle>
+                <CardTitle className="text-base">Tower progress</CardTitle>
                 <p className="text-xs text-gray-500 mt-1">
-                  Hover a tower for the floor breakdown · click to open
+                  Hover a floor to preview · click a tower to drill in
                 </p>
               </div>
-              {towerStats && (
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900 tabular-nums">
-                    {towerStats.completion_pct}%
-                  </div>
-                  <div className="text-[11px] text-gray-500">
-                    project complete
-                  </div>
-                </div>
-              )}
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <LegendDot color="bg-emerald-500" label="Done" />
+                <LegendDot color="bg-amber-500" label="In progress" />
+                <LegendDot color="bg-stone-200" label="Pending" />
+              </div>
             </CardHeader>
             <CardContent>
               {loadingTowers ? (
@@ -152,18 +150,21 @@ export default function DashboardPage() {
                       key={tower.building_id}
                       tower={tower}
                       projectId={projectId}
+                      onClick={setActiveTower}
                     />
                   ))}
                 </div>
               )}
-              {/* Legend */}
-              <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-                <LegendDot color="bg-green-500" label="Completed" />
-                <LegendDot color="bg-yellow-500" label="In Progress" />
-                <LegendDot color="bg-gray-300" label="Not Started" />
-              </div>
             </CardContent>
           </Card>
+
+          <TowerDetailModal
+            open={!!activeTower}
+            onOpenChange={(open) => !open && setActiveTower(null)}
+            tower={activeTower}
+            projectName={towerStats?.project_name}
+            projectId={projectId}
+          />
 
           {/* Snags by category */}
           <Card>

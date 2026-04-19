@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { ProgressDonut } from "@/components/charts/ProgressDonut";
-import { FloorProgressList } from "./FloorProgressList";
-import type { FloorProgress, TowerMini, TowerProgress } from "@/types/api";
-import { Building2 } from "lucide-react";
+import { TowerBuildingViz } from "./TowerBuildingViz";
+import type { TowerMini, TowerProgress } from "@/types/api";
 
 interface DetailedProps {
   variant?: "detailed";
   tower: TowerProgress;
   projectId: string;
+  onClick?: (tower: TowerProgress) => void;
 }
 
 interface MiniProps {
@@ -20,18 +20,14 @@ type Props = DetailedProps | MiniProps;
 
 export function TowerProgressCard(props: Props) {
   const navigate = useNavigate();
-  const { tower, projectId, variant = "detailed" } = props as DetailedProps;
-  const isDetailed = variant === "detailed";
+  const variant = props.variant ?? "detailed";
 
-  const goToTower = () => {
-    navigate(`/projects/${projectId}/buildings/${tower.building_id}`);
-  };
-
-  if (!isDetailed) {
+  if (variant === "mini") {
+    const { tower, projectId } = props as MiniProps;
     return (
       <button
         type="button"
-        onClick={goToTower}
+        onClick={() => navigate(`/projects/${projectId}/buildings/${tower.building_id}`)}
         className="group flex flex-col items-center justify-start rounded-2xl border border-gray-100 bg-white p-3 min-w-[140px] hover:border-primary-200 hover:shadow-md transition-all cursor-pointer"
       >
         <ProgressDonut
@@ -52,81 +48,78 @@ export function TowerProgressCard(props: Props) {
     );
   }
 
-  const detailed = props as DetailedProps;
-  const floors: FloorProgress[] = detailed.tower.floors;
-  const tw = detailed.tower;
+  const { tower, onClick } = props as DetailedProps;
+  const phase = phaseLabel(tower.completion_pct);
+  const badge = badgeLetter(tower.building_name);
 
   return (
-    <div className="group relative">
-      <button
-        type="button"
-        onClick={goToTower}
-        className="w-full flex flex-col items-center rounded-2xl border border-gray-100 bg-white p-4 hover:border-primary-200 hover:shadow-md transition-all cursor-pointer text-left"
-      >
-        {/* Header */}
-        <div className="w-full flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-primary-50 text-primary-600 shrink-0">
-              <Building2 className="h-3.5 w-3.5" />
-            </div>
+    <button
+      type="button"
+      onClick={() => onClick?.(tower)}
+      className="group w-full flex flex-col rounded-2xl border border-gray-100 bg-white p-4 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer text-left"
+    >
+      {/* Header */}
+      <div className="w-full flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <span className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-md bg-gray-900 text-white text-xs font-semibold">
+            {badge}
+          </span>
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">
-              {tw.building_name}
+              {tower.building_name}
+            </p>
+            <p className="text-[11px] text-gray-500 truncate">
+              {tower.total_flats} flats · {tower.floors.length} floors · {phase}
             </p>
           </div>
-          <span className="text-[11px] text-gray-400 tabular-nums shrink-0">
-            {tw.total_flats} flats
+        </div>
+        <div className="text-right shrink-0">
+          <span className="text-2xl font-bold text-gray-900 tabular-nums">
+            {Math.round(tower.completion_pct)}
+            <span className="text-sm font-medium">%</span>
           </span>
+          <p className="text-[10px] text-gray-400 uppercase tracking-wide">complete</p>
         </div>
-
-        {/* Donut */}
-        <ProgressDonut
-          completed={tw.inspected_flats}
-          inProgress={tw.in_progress_flats}
-          notStarted={tw.not_started_flats}
-          size={130}
-          centerClassName="text-lg"
-          showLabel={false}
-        />
-
-        {/* Flat status row — dot + count + label, no fill */}
-        <div className="w-full mt-3 flex items-center justify-between gap-2 text-[11px]">
-          <StatusDot color="bg-green-500" count={tw.inspected_flats} label="Done" />
-          <StatusDot color="bg-yellow-500" count={tw.in_progress_flats} label="Active" />
-          <StatusDot color="bg-gray-300" count={tw.not_started_flats} label="Pending" />
-        </div>
-
-        {/* Snag severity dots */}
-        <div className="w-full mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-1 text-[11px]">
-          <StatusDot color="bg-red-500" count={tw.critical_snags} label="Crit" />
-          <StatusDot color="bg-orange-500" count={tw.major_snags} label="Major" />
-          <StatusDot color="bg-yellow-500" count={tw.minor_snags} label="Minor" />
-          <span className="text-[10px] text-gray-500 tabular-nums">
-            {tw.open_snags} open
-          </span>
-        </div>
-      </button>
-
-      {/* Hover popover — floor breakdown */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150 z-30 pointer-events-none"
-        role="tooltip"
-      >
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-xl p-3">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-700">
-              {tw.building_name} · Floor breakdown
-            </p>
-            <span className="text-[10px] text-gray-400">
-              {floors.length} floors
-            </span>
-          </div>
-          <FloorProgressList floors={floors} />
-        </div>
-        {/* Arrow */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 w-2 h-2 rotate-45 bg-white border-r border-b border-gray-100" />
       </div>
-    </div>
+
+      {/* Building visualization */}
+      <div className="w-full flex justify-center my-3">
+        <TowerBuildingViz floors={tower.floors} size="compact" />
+      </div>
+
+      {/* Flat status row */}
+      <div className="w-full flex items-center justify-between gap-2 text-[11px]">
+        <StatusDot color="bg-emerald-500" count={tower.inspected_flats} label="Done" />
+        <StatusDot color="bg-amber-500" count={tower.in_progress_flats} label="Active" />
+        <StatusDot color="bg-stone-300" count={tower.not_started_flats} label="Pending" />
+      </div>
+
+      {/* Snag severity row */}
+      <div className="w-full mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2 text-[11px]">
+        <div className="flex items-center gap-3">
+          <SeverityDot color="bg-red-600" count={tower.critical_snags} label="critical" />
+          <SeverityDot color="bg-amber-500" count={tower.major_snags} label="major" />
+          <SeverityDot color="bg-gray-400" count={tower.minor_snags} label="minor" />
+        </div>
+        <span className="text-[10px] text-gray-500 tabular-nums whitespace-nowrap">
+          {tower.open_snags} open <span aria-hidden>→</span>
+        </span>
+      </div>
+    </button>
   );
+}
+
+function phaseLabel(pct: number): string {
+  if (pct >= 95) return "Handover ready";
+  if (pct >= 60) return "Final snagging";
+  if (pct >= 25) return "Active inspection";
+  if (pct > 0) return "Early inspection";
+  return "Pre-inspection";
+}
+
+function badgeLetter(name: string): string {
+  const m = name.match(/[A-Za-z]/g);
+  return (m ? m[m.length - 1] : name.charAt(0)).toUpperCase();
 }
 
 function StatusDot({
@@ -140,6 +133,24 @@ function StatusDot({
 }) {
   return (
     <span className="flex items-center gap-1.5">
+      <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
+      <span className="font-semibold tabular-nums text-gray-900">{count}</span>
+      <span className="text-gray-500">{label}</span>
+    </span>
+  );
+}
+
+function SeverityDot({
+  color,
+  count,
+  label,
+}: {
+  color: string;
+  count: number;
+  label: string;
+}) {
+  return (
+    <span className="flex items-center gap-1">
       <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
       <span className="font-semibold tabular-nums text-gray-900">{count}</span>
       <span className="text-gray-500">{label}</span>
