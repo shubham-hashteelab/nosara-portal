@@ -64,7 +64,7 @@ src/
 │   ├── layout/             # Sidebar, TopBar, MainLayout
 │   ├── common/             # DataTable, StatusBadge, SeverityBadge, FloorPlanView, EmptyState
 │   ├── charts/             # ProgressDonut (size-configurable), SnagsByCategoryBar, InspectorActivityLine
-│   └── dashboard/          # TowerProgressCard (detailed + mini variants), FloorProgressList
+│   └── dashboard/          # TowerProgressCard (detailed + mini variants), TowerBuildingViz, TowerDetailModal, FloorProgressList
 ├── pages/
 │   ├── LoginPage.tsx        # Server config + login (always shows URL step first)
 │   ├── DashboardPage.tsx
@@ -84,7 +84,8 @@ src/
 
 ## Key Features
 
-- **Dashboard Tower Grid** — Single project-wide donut replaced with a responsive grid of per-tower cards (`TowerProgressCard`, detailed variant). Each card: small donut, flat-status pill row (Done/Active/Pending), severity dots (critical/major/minor) + open-snag count. **Hover** reveals a floor-breakdown popover (`FloorProgressList`) with stacked mini bars per floor. **Click** drills into the existing building detail route. Card header shows project-wide completion %. Data from `GET /dashboard/projects/{id}/tower-stats`. All values from DB — no hardcoded towers/floors.
+- **Dashboard Tower Grid** — Responsive grid of per-tower cards (`TowerProgressCard`, detailed variant). Each card renders a literal building (`TowerBuildingViz`) with stacked floor rows; each floor shows N flat-blocks colored by `inspection_status` (emerald = COMPLETED, amber = IN_PROGRESS, stone = NOT_STARTED). Block counts come from the per-floor aggregates in `tower-stats` — flats are not individually identified, so blocks have no spatial meaning beyond count. Card header shows a dark letter badge (last A-Z char of building name), name, derived phase string (`phaseLabel(completion_pct)`: Pre-inspection → Early/Active/Final → Handover ready), and completion %. Footer: flat-status row + severity row (critical/major/minor) + open-snag count. **Hover** a floor inside the building → black tooltip with that floor's Done/In-progress/Open-snags. **Click** the card → opens `TowerDetailModal` (no longer navigates). Data from `GET /dashboard/projects/{id}/tower-stats`. All values from DB — no hardcoded towers/floors.
+- **Tower Detail Modal** — `TowerDetailModal` opens from the dashboard tower card. Tall building viz on the left (same `TowerBuildingViz` with `size="tall"`), per-floor list on the right with mini-blocks + linear progress bar + % + open-snag badge. Filter tabs: All / With snags (`open_snags > 0`) / Pending (`completion_pct < 100`). Hovering a floor row in the list highlights the matching floor in the building (`highlightFloorId`). Clicking a floor row navigates to the floor's flat grid. "Open tower page →" footer link preserves the route to `/projects/:id/buildings/:bid`. Heatmap/List view modes are intentionally out of scope.
 - **Projects list card layout** — `ProjectListPage` is a card grid, not a table. Each project card shows name/location/totals and a horizontal scrollable strip of `TowerProgressCard` (mini variant). Data from `GET /dashboard/projects-overview` in one call (no N+1). Search, create, delete preserved.
 - **Floor Plan View** (`FloorPlanView.tsx`) — SVG-based room layout with progress colors (not started/in progress/completed). Rooms are **clickable** — clicking a room scrolls to and filters its entries, with blue selection highlight and hover effects.
 - **Room-wise Inspection Entries** — Entries grouped by room with collapsible rows showing stacked progress bars (passed/snags/pending). Expanding shows full checklist table with notes, media counts. Replaces the old flat DataTable.
