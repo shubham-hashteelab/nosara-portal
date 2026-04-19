@@ -78,10 +78,13 @@ export function TowerBuildingViz({
     ? sorted.find((f) => f.floor_id === hoveredFloorId)
     : null;
 
-  // Show every Nth label so the column doesn't get crowded.
-  const labelStep = sorted.length > 12 ? 5 : sorted.length > 6 ? 2 : 1;
+  // Tall mode (modal) labels every floor. Compact mode (card) labels only
+  // bookends + every 5th floor — keeps the column readable at small sizes.
+  const labelStep = size === "tall" ? 1 : sorted.length > 6 ? 5 : 1;
   const shouldLabel = (i: number) =>
-    i === 0 || i === sorted.length - 1 || (sorted.length - 1 - i) % labelStep === 0;
+    i === 0 ||
+    i === sorted.length - 1 ||
+    sorted[i].floor_number % labelStep === 0;
 
   return (
     <div className="relative inline-block">
