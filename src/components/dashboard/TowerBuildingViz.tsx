@@ -85,10 +85,10 @@ export function TowerBuildingViz({
       <div className="flex items-stretch">
         {/* Floor number column */}
         <div
-          className="flex flex-col items-end justify-end pr-1.5 select-none"
+          className="flex flex-col items-end pr-1.5 select-none"
           style={{
             width: tokens.labelColW,
-            paddingTop: tokens.roofH,
+            paddingTop: tokens.roofH + tokens.bodyPad,
             gap: tokens.floorGap,
             color: "#9ca3af",
             fontSize: tokens.labelFont,
