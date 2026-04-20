@@ -59,8 +59,11 @@ export default function ProjectListPage() {
 
   const seedMutation = useMutation({
     mutationFn: async () => {
-      await seedHierarchy();
+      // Defaults must be seeded first — seed-hierarchy auto-initializes each
+      // flat's checklist from flat_type_rooms + checklist_templates, which
+      // seed-defaults populates. Reversed order leaves all flats with 0 entries.
       await seedDefaults();
+      await seedHierarchy();
     },
     onSuccess: invalidateAll,
   });
