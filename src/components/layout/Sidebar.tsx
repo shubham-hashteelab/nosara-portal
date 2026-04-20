@@ -22,7 +22,7 @@ const navItems = [
   { to: "/inspections", label: "Inspections", icon: ClipboardCheck },
   { to: "/blueprints", label: "Blueprints", icon: LayoutTemplate, matchPrefixes: BLUEPRINTS_PREFIXES },
   { to: "/users", label: "Users", icon: Users },
-  { to: "/contractors", label: "Contractors", icon: Wrench },
+  { to: "/contractors", label: "Business Associates", icon: Wrench },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

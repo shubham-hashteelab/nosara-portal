@@ -66,7 +66,7 @@ export function ContractorFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {contractor ? "Edit Contractor" : "Add Contractor"}
+            {contractor ? "Edit Business Associate" : "Add Business Associate"}
           </DialogTitle>
         </DialogHeader>
         <form
@@ -121,7 +121,7 @@ export function ContractorFormDialog({
               {isSubmitting && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              {contractor ? "Save Changes" : "Add Contractor"}
+              {contractor ? "Save Changes" : "Add Business Associate"}
             </Button>
           </DialogFooter>
         </form>

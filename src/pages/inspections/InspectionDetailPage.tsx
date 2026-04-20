@@ -333,7 +333,7 @@ export default function InspectionDetailPage() {
           {/* Contractor assignments */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Contractors</CardTitle>
+              <CardTitle className="text-base">Business Associates</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex gap-2">
@@ -342,7 +342,7 @@ export default function InspectionDetailPage() {
                   value={selectedContractor}
                   onChange={(e) => setSelectedContractor(e.target.value)}
                 >
-                  <option value="">Select contractor...</option>
+                  <option value="">Select business associate...</option>
                   {contractors?.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.trade})

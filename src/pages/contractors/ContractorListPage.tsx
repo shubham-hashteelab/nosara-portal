@@ -105,14 +105,14 @@ export default function ContractorListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contractors</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Business Associates</h1>
           <p className="text-sm text-gray-500">
-            Manage contractors for snag assignments
+            Manage business associates for snag assignments
           </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Contractor
+          Add Business Associate
         </Button>
       </div>
 
@@ -120,7 +120,7 @@ export default function ContractorListPage() {
         data={contractors ?? []}
         columns={columns}
         searchable
-        searchPlaceholder="Search contractors..."
+        searchPlaceholder="Search business associates..."
         getRowKey={(c) => c.id}
       />
 
@@ -151,8 +151,8 @@ export default function ContractorListPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={() => setDeleteTarget(null)}
-        title="Delete Contractor"
-        description={`Delete "${deleteTarget?.name}"? Existing assignments will remain but the contractor will be removed.`}
+        title="Delete Business Associate"
+        description={`Delete "${deleteTarget?.name}"? Existing assignments will remain but the business associate will be removed.`}
         confirmLabel="Delete"
         onConfirm={() => {
           if (deleteTarget) deleteMutation.mutate(deleteTarget.id);

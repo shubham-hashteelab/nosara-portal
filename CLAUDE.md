@@ -35,6 +35,7 @@ Snagging inspection system for real estate handover. Three repos, one backend:
 - **Error boundary** in `main.tsx` catches React crashes and shows the error message instead of white screen.
 - **Sidebar highlighting:** "Projects" stays highlighted on hierarchy pages (`/buildings/*`, `/floors/*`) via `matchPrefixes` on the nav item. Uses `useLocation` pathname matching.
 - **Media URLs:** Use `getMediaUrl(minioKey)` from `src/api/media.ts`. Builds `{backendUrl}/api/v1/files/{minioKey}?token={jwt}`. Don't `encodeURIComponent` the minio key — slashes must stay as path segments.
+- **"Business Associate" = Contractor (UI label only).** User-visible strings say "Business Associate" / "Business Associates" (sidebar, page headings, dialog titles, dropdown placeholder, inspection-detail card). Everything else — route path `/contractors`, component file names, types (`Contractor`, `ContractorCreate`, `SnagContractorAssignment`), API client (`listContractors`, `assignContractorToSnag`), backend endpoints (`/api/v1/contractors`), DB tables — still uses `contractor`. Pure UI rename on 2026-04-20. Do not rename identifiers/paths/types without a full cross-repo migration.
 
 ## Design System
 
