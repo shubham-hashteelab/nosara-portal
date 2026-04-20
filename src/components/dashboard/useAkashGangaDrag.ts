@@ -63,6 +63,7 @@ export function useAkashGangaDrag(options: {
     (s: DragState) => {
       const clone = s.origin.cloneNode(true) as HTMLElement;
       clone.classList.add("ag-drag-ghost");
+      clone.style.transition = "none";
       clone.style.left = s.startLeft + "px";
       clone.style.top = s.startTop + "px";
       clone.style.width = s.w + "px";
