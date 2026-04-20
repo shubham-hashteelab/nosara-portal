@@ -145,7 +145,7 @@ export function ProjectAssignmentDialog({
   };
 
   const projectMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       action,
       projectId,
       force,
@@ -153,13 +153,16 @@ export function ProjectAssignmentDialog({
       action: "assign" | "unassign";
       projectId: string;
       force?: boolean;
-    }) =>
-      action === "assign"
-        ? assignProject(user!.id, projectId, force)
-        : unassignProject(user!.id, projectId),
+    }): Promise<AssignmentResult | null> => {
+      if (action === "assign") {
+        return await assignProject(user!.id, projectId, force);
+      }
+      await unassignProject(user!.id, projectId);
+      return null;
+    },
     onSuccess: (result) => {
       invalidate();
-      if (result && typeof result === "object" && "unassigned" in result) {
+      if (result) {
         const msg = formatRemovals(result);
         if (msg) setReassignSummary(`Reassigned from ${msg}.`);
       }
@@ -167,7 +170,7 @@ export function ProjectAssignmentDialog({
   });
 
   const buildingMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       action,
       buildingId,
       force,
@@ -175,13 +178,16 @@ export function ProjectAssignmentDialog({
       action: "assign" | "unassign";
       buildingId: string;
       force?: boolean;
-    }) =>
-      action === "assign"
-        ? assignBuilding(user!.id, buildingId, force)
-        : unassignBuilding(user!.id, buildingId),
+    }): Promise<AssignmentResult | null> => {
+      if (action === "assign") {
+        return await assignBuilding(user!.id, buildingId, force);
+      }
+      await unassignBuilding(user!.id, buildingId);
+      return null;
+    },
     onSuccess: (result) => {
       invalidate();
-      if (result && typeof result === "object" && "unassigned" in result) {
+      if (result) {
         const msg = formatRemovals(result);
         if (msg) setReassignSummary(`Reassigned from ${msg}.`);
       }
@@ -189,7 +195,7 @@ export function ProjectAssignmentDialog({
   });
 
   const flatMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       action,
       flatId,
       force,
@@ -197,10 +203,13 @@ export function ProjectAssignmentDialog({
       action: "assign" | "unassign";
       flatId: string;
       force?: boolean;
-    }) =>
-      action === "assign"
-        ? assignFlat(user!.id, flatId, force)
-        : unassignFlat(user!.id, flatId),
+    }): Promise<AssignmentResult | null> => {
+      if (action === "assign") {
+        return await assignFlat(user!.id, flatId, force);
+      }
+      await unassignFlat(user!.id, flatId);
+      return null;
+    },
     onMutate: ({ flatId }) => {
       setPendingFlatIds((prev) => new Set(prev).add(flatId));
     },
@@ -213,7 +222,7 @@ export function ProjectAssignmentDialog({
     },
     onSuccess: (result) => {
       invalidate();
-      if (result && typeof result === "object" && "unassigned" in result) {
+      if (result) {
         const msg = formatRemovals(result);
         if (msg) setReassignSummary(`Reassigned from ${msg}.`);
       }
