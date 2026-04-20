@@ -95,36 +95,19 @@ export function useAkashGangaDrag(options: {
         }
       }
 
-      const vc = getPoolCenter();
-      let tx = cx - s.offX;
-      let ty = cy - s.offY;
-      let scale = 1;
-      let rot = 0;
-      let isArmed = false;
-
-      if (vc) {
-        const dx = cx - vc.x;
-        const dy = cy - vc.y;
-        const dist = Math.hypot(dx, dy);
-        const pullRadius = vc.r * 2;
-        if (dist < pullRadius) {
-          const t = 1 - dist / pullRadius;
-          const pull = Math.pow(t, 1.8);
-          const cardCx = tx + s.w / 2;
-          const cardCy = ty + s.h / 2;
-          const nx = cardCx + (vc.x - cardCx) * pull * 0.45;
-          const ny = cardCy + (vc.y - cardCy) * pull * 0.45;
-          tx = nx - s.w / 2;
-          ty = ny - s.h / 2;
-          scale = 1 - pull * 0.28;
-          rot = pull * 14;
-          isArmed = true;
-        }
-      }
-
+      const tx = cx - s.offX;
+      const ty = cy - s.offY;
       s.ghost.style.left = tx + "px";
       s.ghost.style.top = ty + "px";
-      s.ghost.style.transform = `scale(${scale}) rotate(${rot}deg)`;
+
+      const vc = getPoolCenter();
+      let isArmed = false;
+      if (vc) {
+        const cardCx = tx + s.w / 2;
+        const cardCy = ty + s.h / 2;
+        const dist = Math.hypot(cardCx - vc.x, cardCy - vc.y);
+        isArmed = dist < vc.r * 1.2;
+      }
       setArmed(isArmed);
     },
     [beginActualDrag, getPoolCenter]
