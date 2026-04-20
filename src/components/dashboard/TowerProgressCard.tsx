@@ -1,3 +1,4 @@
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProgressDonut } from "@/components/charts/ProgressDonut";
 import { TowerBuildingViz } from "./TowerBuildingViz";
@@ -8,6 +9,8 @@ interface DetailedProps {
   tower: TowerProgress;
   projectId: string;
   onClick?: (tower: TowerProgress) => void;
+  onPointerDown?: (e: ReactPointerEvent<HTMLElement>) => void;
+  shouldSuppressClick?: () => boolean;
 }
 
 interface MiniProps {
@@ -48,15 +51,20 @@ export function TowerProgressCard(props: Props) {
     );
   }
 
-  const { tower, onClick } = props as DetailedProps;
+  const { tower, onClick, onPointerDown, shouldSuppressClick } =
+    props as DetailedProps;
   const phase = phaseLabel(tower.completion_pct);
   const badge = badgeLetter(tower.building_name);
 
   return (
     <button
       type="button"
-      onClick={() => onClick?.(tower)}
-      className="group w-full flex flex-col rounded-2xl border border-gray-100 bg-white p-4 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer text-left"
+      onPointerDown={onPointerDown}
+      onClick={() => {
+        if (shouldSuppressClick?.()) return;
+        onClick?.(tower);
+      }}
+      className="group w-full flex flex-col rounded-2xl border border-gray-100 bg-white p-4 hover:border-gray-300 hover:shadow-md transition-all cursor-grab active:cursor-grabbing text-left touch-none"
     >
       {/* Header */}
       <div className="w-full flex items-start justify-between gap-3">

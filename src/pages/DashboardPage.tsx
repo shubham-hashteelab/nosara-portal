@@ -13,6 +13,10 @@ import { SnagsByCategoryBar } from "@/components/charts/SnagsByCategoryBar";
 import { InspectorActivityLine } from "@/components/charts/InspectorActivityLine";
 import { TowerProgressCard } from "@/components/dashboard/TowerProgressCard";
 import { TowerDetailModal } from "@/components/dashboard/TowerDetailModal";
+import { AkashGangaPool } from "@/components/dashboard/AkashGangaPool";
+import { AkashGangaModal } from "@/components/dashboard/AkashGangaModal";
+import { useAkashGangaDrag } from "@/components/dashboard/useAkashGangaDrag";
+import { playWaterDrop } from "@/components/dashboard/playDrop";
 import type { TowerProgress } from "@/types/api";
 import {
   Building2,
@@ -26,6 +30,14 @@ export default function DashboardPage() {
     null
   );
   const [activeTower, setActiveTower] = useState<TowerProgress | null>(null);
+  const [akashTower, setAkashTower] = useState<TowerProgress | null>(null);
+
+  const { poolRef, armed, draggingTowerId, getDragHandlers } = useAkashGangaDrag(
+    {
+      onDrop: (tower) => setAkashTower(tower),
+      onSound: playWaterDrop,
+    }
+  );
 
   const { data: projects, isLoading: loadingProjects } = useQuery({
     queryKey: ["projects"],
@@ -145,14 +157,19 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {towerStats.towers.map((tower) => (
-                    <TowerProgressCard
-                      key={tower.building_id}
-                      tower={tower}
-                      projectId={projectId}
-                      onClick={setActiveTower}
-                    />
-                  ))}
+                  {towerStats.towers.map((tower) => {
+                    const handlers = getDragHandlers(tower);
+                    return (
+                      <TowerProgressCard
+                        key={tower.building_id}
+                        tower={tower}
+                        projectId={projectId}
+                        onClick={setActiveTower}
+                        onPointerDown={handlers.onPointerDown}
+                        shouldSuppressClick={handlers.suppressClick}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -162,6 +179,20 @@ export default function DashboardPage() {
             open={!!activeTower}
             onOpenChange={(open) => !open && setActiveTower(null)}
             tower={activeTower}
+            projectName={towerStats?.project_name}
+            projectId={projectId}
+          />
+
+          <AkashGangaPool
+            poolRef={poolRef}
+            armed={armed}
+            dragging={!!draggingTowerId}
+          />
+
+          <AkashGangaModal
+            open={!!akashTower}
+            onClose={() => setAkashTower(null)}
+            tower={akashTower}
             projectName={towerStats?.project_name}
             projectId={projectId}
           />
