@@ -384,6 +384,35 @@ export interface ProjectsOverviewResponse {
   projects: ProjectOverview[];
 }
 
+/* ───────── Assignment mutations ───────── */
+export type AssignmentLevel = "project" | "building" | "flat";
+
+export interface AssignmentRemoval {
+  user_id: string;
+  user_name: string;
+  level: AssignmentLevel;
+  entity_id: string;
+}
+
+export interface AssignmentResult {
+  detail: string;
+  unassigned: AssignmentRemoval[];
+}
+
+export interface AssignmentConflict {
+  user_id: string;
+  full_name: string;
+}
+
+// Returned as `detail` on a 409 when another user already holds the same-level
+// assignment. Portal reads this to show a reassign confirmation dialog.
+export interface ExclusiveConflictDetail {
+  code: "EXCLUSIVE_CONFLICT";
+  level: AssignmentLevel;
+  message: string;
+  conflicts: AssignmentConflict[];
+}
+
 /* ───────── Assignment Coverage ───────── */
 export type InspectorSource = "PROJECT" | "BUILDING" | "FLAT";
 

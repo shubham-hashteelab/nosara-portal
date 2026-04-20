@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Flat } from "@/types/api";
+import type { Flat, InspectorRef } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 
@@ -12,6 +12,7 @@ export interface FloorWithFlats {
 interface Props {
   floors: FloorWithFlats[];
   assignedFlatIds: Set<string>;
+  otherInspectorsByFlat?: Map<string, InspectorRef[]>;
   hasParentAccess: boolean;
   parentAccessSource?: "project" | "building";
   onToggleFlat: (flatId: string, currentlyAssigned: boolean) => void;
@@ -34,6 +35,7 @@ const TOKENS = {
 export function TowerAssignmentViz({
   floors,
   assignedFlatIds,
+  otherInspectorsByFlat,
   hasParentAccess,
   parentAccessSource,
   onToggleFlat,
@@ -119,6 +121,7 @@ export function TowerAssignmentViz({
                 key={floor.floor_id}
                 floor={floor}
                 assignedFlatIds={assignedFlatIds}
+                otherInspectorsByFlat={otherInspectorsByFlat}
                 hasParentAccess={hasParentAccess}
                 pendingFlatIds={pendingFlatIds}
                 onToggleFlat={onToggleFlat}
@@ -140,6 +143,9 @@ export function TowerAssignmentViz({
         <FlatTooltip
           flat={hoveredFlat.flat}
           isAssigned={assignedFlatIds.has(hoveredFlat.flat.id)}
+          otherInspectors={
+            otherInspectorsByFlat?.get(hoveredFlat.flat.id) ?? []
+          }
           hasParentAccess={hasParentAccess}
           parentAccessSource={parentAccessSource}
           x={hoveredFlat.x}
@@ -153,6 +159,7 @@ export function TowerAssignmentViz({
 function FloorRow({
   floor,
   assignedFlatIds,
+  otherInspectorsByFlat,
   hasParentAccess,
   pendingFlatIds,
   onToggleFlat,
@@ -160,6 +167,7 @@ function FloorRow({
 }: {
   floor: FloorWithFlats;
   assignedFlatIds: Set<string>;
+  otherInspectorsByFlat?: Map<string, InspectorRef[]>;
   hasParentAccess: boolean;
   pendingFlatIds?: Set<string>;
   onToggleFlat: (flatId: string, currentlyAssigned: boolean) => void;
@@ -192,10 +200,13 @@ function FloorRow({
       {sortedFlats.map((flat) => {
         const isAssigned = assignedFlatIds.has(flat.id);
         const isPending = pendingFlatIds?.has(flat.id) ?? false;
+        const isOtherAssigned =
+          !isAssigned && (otherInspectorsByFlat?.get(flat.id)?.length ?? 0) > 0;
         return (
           <FlatBlock
             key={flat.id}
             isAssigned={isAssigned}
+            isOtherAssigned={isOtherAssigned}
             hasParentAccess={hasParentAccess}
             isPending={isPending}
             onClick={() => {
@@ -216,6 +227,7 @@ function FloorRow({
 
 function FlatBlock({
   isAssigned,
+  isOtherAssigned,
   hasParentAccess,
   isPending,
   onClick,
@@ -223,6 +235,7 @@ function FlatBlock({
   onMouseLeave,
 }: {
   isAssigned: boolean;
+  isOtherAssigned: boolean;
   hasParentAccess: boolean;
   isPending: boolean;
   onClick: () => void;
@@ -233,7 +246,9 @@ function FlatBlock({
     ? "inherited"
     : isAssigned
       ? "direct"
-      : "unassigned";
+      : isOtherAssigned
+        ? "other"
+        : "unassigned";
 
   return (
     <button
@@ -248,6 +263,8 @@ function FlatBlock({
           "bg-white border border-gray-300 hover:border-primary-400 hover:bg-primary-50 cursor-pointer",
         state === "direct" &&
           "bg-primary-500 border border-primary-600 hover:bg-red-500 hover:border-red-600 cursor-pointer",
+        state === "other" &&
+          "bg-amber-200 border border-amber-400 hover:bg-amber-300 cursor-pointer",
         state === "inherited" &&
           "bg-blue-100 border border-blue-200 cursor-not-allowed",
         isPending && "opacity-50 cursor-wait"
@@ -291,6 +308,7 @@ function Roof({ width, height }: { width: number; height: number }) {
 function FlatTooltip({
   flat,
   isAssigned,
+  otherInspectors,
   hasParentAccess,
   parentAccessSource,
   x,
@@ -298,6 +316,7 @@ function FlatTooltip({
 }: {
   flat: Flat;
   isAssigned: boolean;
+  otherInspectors: InspectorRef[];
   hasParentAccess: boolean;
   parentAccessSource?: "project" | "building";
   x: number;
@@ -307,7 +326,9 @@ function FlatTooltip({
     ? `Inherited from ${parentAccessSource ?? "parent"}`
     : isAssigned
       ? "Assigned directly"
-      : "Unassigned";
+      : otherInspectors.length > 0
+        ? "Held by another inspector"
+        : "Unassigned";
 
   return (
     <div
@@ -318,6 +339,11 @@ function FlatTooltip({
         <div className="text-[11px] font-semibold">Flat {flat.flat_number}</div>
         <div className="text-[10px] text-gray-300">{flat.flat_type}</div>
         <div className="text-[10px] text-gray-400 mt-0.5">{stateLabel}</div>
+        {otherInspectors.length > 0 && !hasParentAccess && !isAssigned && (
+          <div className="text-[10px] text-amber-300 mt-1 font-medium">
+            {otherInspectors.map((i) => i.full_name).join(", ")}
+          </div>
+        )}
       </div>
     </div>
   );

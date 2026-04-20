@@ -1,5 +1,6 @@
 import apiClient from "./client";
 import type {
+  AssignmentResult,
   User,
   UserCreate,
   UserScopeDetails,
@@ -38,13 +39,22 @@ export async function updateUser(
   return response.data;
 }
 
+// `force=true` tells the backend to atomically unassign any OTHER users who
+// currently hold the same-level (or lower-level) direct assignment inside
+// this scope. Without force, the backend returns 409 with an
+// ExclusiveConflictDetail body so the portal can prompt for confirmation.
+
 export async function assignProject(
   userId: string,
-  projectId: string
-): Promise<void> {
-  await apiClient.post(
-    `/api/v1/users/${userId}/assign-project/${projectId}`
+  projectId: string,
+  force = false
+): Promise<AssignmentResult> {
+  const response = await apiClient.post<AssignmentResult>(
+    `/api/v1/users/${userId}/assign-project/${projectId}`,
+    undefined,
+    { params: force ? { force: true } : undefined }
   );
+  return response.data;
 }
 
 export async function unassignProject(
@@ -58,11 +68,15 @@ export async function unassignProject(
 
 export async function assignBuilding(
   userId: string,
-  buildingId: string
-): Promise<void> {
-  await apiClient.post(
-    `/api/v1/users/${userId}/assign-building/${buildingId}`
+  buildingId: string,
+  force = false
+): Promise<AssignmentResult> {
+  const response = await apiClient.post<AssignmentResult>(
+    `/api/v1/users/${userId}/assign-building/${buildingId}`,
+    undefined,
+    { params: force ? { force: true } : undefined }
   );
+  return response.data;
 }
 
 export async function unassignBuilding(
@@ -76,11 +90,15 @@ export async function unassignBuilding(
 
 export async function assignFlat(
   userId: string,
-  flatId: string
-): Promise<void> {
-  await apiClient.post(
-    `/api/v1/users/${userId}/assign-flat/${flatId}`
+  flatId: string,
+  force = false
+): Promise<AssignmentResult> {
+  const response = await apiClient.post<AssignmentResult>(
+    `/api/v1/users/${userId}/assign-flat/${flatId}`,
+    undefined,
+    { params: force ? { force: true } : undefined }
   );
+  return response.data;
 }
 
 export async function unassignFlat(
