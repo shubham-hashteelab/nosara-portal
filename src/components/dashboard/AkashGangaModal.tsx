@@ -68,10 +68,7 @@ export function AkashGangaModal({
 
         <div className="ag-modal-body">
           <div className="ag-modal-kicker">Tower Transit · Resolved</div>
-          <div className="ag-modal-title">
-            {tower.building_name}
-            <span className="ag-jp">塔</span>
-          </div>
+          <div className="ag-modal-title">{tower.building_name}</div>
           <div className="ag-modal-sub">
             {projectName ? (
               <>

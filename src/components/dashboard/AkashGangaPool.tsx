@@ -36,7 +36,7 @@ export function AkashGangaPool({ poolRef, armed, dragging }: Props) {
     <div className={`ag-scope ag-pool-card${armed ? " ag-armed" : ""}`}>
       <div className="ag-head">
         <div className="ag-title">
-          Akash Ganga <span className="ag-jp">水鏡</span>
+          Akash Ganga
         </div>
         <div className="ag-status">
           <span className="ag-dot" />
