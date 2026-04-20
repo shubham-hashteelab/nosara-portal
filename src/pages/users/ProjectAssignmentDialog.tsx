@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listProjects } from "@/api/projects";
 import { listBuildingsByProject } from "@/api/buildings";
-import { listFlatsByFloor } from "@/api/flats";
 import { listFloorsByBuilding } from "@/api/floors";
 import {
   getUser,
@@ -22,16 +21,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { TowerGridPanel } from "@/components/users/TowerGridPanel";
 import {
   Plus,
   X,
   ChevronRight,
   ChevronDown,
   Building2,
-  Home,
   FolderOpen,
 } from "lucide-react";
-import type { User, Floor } from "@/types/api";
+import type { User } from "@/types/api";
 
 interface ProjectAssignmentDialogProps {
   open: boolean;
@@ -47,6 +46,16 @@ export function ProjectAssignmentDialog({
   const queryClient = useQueryClient();
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [expandedBuilding, setExpandedBuilding] = useState<string | null>(null);
+  const [pendingFlatIds, setPendingFlatIds] = useState<Set<string>>(new Set());
+
+  const toggleProject = (projectId: string) => {
+    if (expandedProject === projectId) {
+      setExpandedProject(null);
+    } else {
+      setExpandedProject(projectId);
+    }
+    setExpandedBuilding(null);
+  };
 
   // Live user data — refetches after every mutation
   const { data: liveUser } = useQuery({
@@ -70,7 +79,7 @@ export function ProjectAssignmentDialog({
     enabled: !!expandedProject,
   });
 
-  const { data: floors } = useQuery({
+  const { data: floors, isLoading: isLoadingFloors } = useQuery({
     queryKey: ["floors", expandedBuilding],
     queryFn: () => listFloorsByBuilding(expandedBuilding!),
     enabled: !!expandedBuilding,
@@ -120,8 +129,29 @@ export function ProjectAssignmentDialog({
       action === "assign"
         ? assignFlat(user!.id, flatId)
         : unassignFlat(user!.id, flatId),
+    onMutate: ({ flatId }) => {
+      setPendingFlatIds((prev) => {
+        const next = new Set(prev);
+        next.add(flatId);
+        return next;
+      });
+    },
+    onSettled: (_data, _err, { flatId }) => {
+      setPendingFlatIds((prev) => {
+        const next = new Set(prev);
+        next.delete(flatId);
+        return next;
+      });
+    },
     onSuccess: invalidate,
   });
+
+  const toggleFlat = (flatId: string, currentlyAssigned: boolean) => {
+    flatMutation.mutate({
+      action: currentlyAssigned ? "unassign" : "assign",
+      flatId,
+    });
+  };
 
   if (!user) return null;
 
@@ -134,8 +164,8 @@ export function ProjectAssignmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-5xl p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2">
             Access Control — {currentUser?.full_name}
             {totalAssignments > 0 && (
@@ -147,6 +177,7 @@ export function ProjectAssignmentDialog({
           </DialogTitle>
         </DialogHeader>
 
+        <div className="max-h-[75vh] overflow-y-auto px-6 py-4">
         {isLoading ? (
           <LoadingSpinner />
         ) : !projects?.length ? (
@@ -157,7 +188,7 @@ export function ProjectAssignmentDialog({
           <div className="space-y-2">
             <p className="text-xs text-gray-500 mb-3">
               Assign at project level for full access, or drill into towers/flats
-              for granular control.
+              for granular control. Hover a flat to see details; click to toggle.
             </p>
             {projects.map((project) => {
               const isProjectAssigned = assignedProjects.has(project.id);
@@ -170,9 +201,7 @@ export function ProjectAssignmentDialog({
                     <button
                       type="button"
                       className="text-gray-400 hover:text-gray-600"
-                      onClick={() =>
-                        setExpandedProject(isExpanded ? null : project.id)
-                      }
+                      onClick={() => toggleProject(project.id)}
                     >
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4" />
@@ -292,26 +321,16 @@ export function ProjectAssignmentDialog({
                               )}
                             </div>
 
-                            {/* Expanded: flats */}
+                            {/* Expanded: grid */}
                             {isBuildingExpanded && (
-                              <FlatsPanel
-                                buildingId={building.id}
+                              <TowerGridPanel
                                 floors={floors ?? []}
                                 assignedFlats={assignedFlats}
                                 isProjectAssigned={isProjectAssigned}
                                 isBuildingAssigned={isBuildingAssigned}
-                                onAssignFlat={(flatId) =>
-                                  flatMutation.mutate({
-                                    action: "assign",
-                                    flatId,
-                                  })
-                                }
-                                onUnassignFlat={(flatId) =>
-                                  flatMutation.mutate({
-                                    action: "unassign",
-                                    flatId,
-                                  })
-                                }
+                                pendingFlatIds={pendingFlatIds}
+                                isLoadingFloors={isLoadingFloors}
+                                onToggleFlat={toggleFlat}
                               />
                             )}
                           </div>
@@ -324,103 +343,9 @@ export function ProjectAssignmentDialog({
             })}
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function FlatsPanel({
-  buildingId: _buildingId,
-  floors,
-  assignedFlats,
-  isProjectAssigned,
-  isBuildingAssigned,
-  onAssignFlat,
-  onUnassignFlat,
-}: {
-  buildingId: string;
-  floors: Floor[];
-  assignedFlats: Set<string>;
-  isProjectAssigned: boolean;
-  isBuildingAssigned: boolean;
-  onAssignFlat: (flatId: string) => void;
-  onUnassignFlat: (flatId: string) => void;
-}) {
-  const hasParentAccess = isProjectAssigned || isBuildingAssigned;
-
-  return (
-    <div className="pl-14 space-y-1 mt-1">
-      {floors.map((floor) => (
-        <FloorFlats
-          key={floor.id}
-          floor={floor}
-          assignedFlats={assignedFlats}
-          hasParentAccess={hasParentAccess}
-          onAssignFlat={onAssignFlat}
-          onUnassignFlat={onUnassignFlat}
-        />
-      ))}
-    </div>
-  );
-}
-
-function FloorFlats({
-  floor,
-  assignedFlats,
-  hasParentAccess,
-  onAssignFlat,
-  onUnassignFlat,
-}: {
-  floor: Floor;
-  assignedFlats: Set<string>;
-  hasParentAccess: boolean;
-  onAssignFlat: (flatId: string) => void;
-  onUnassignFlat: (flatId: string) => void;
-}) {
-  const { data: flats } = useQuery({
-    queryKey: ["flats", floor.id],
-    queryFn: () => listFlatsByFloor(floor.id),
-  });
-
-  if (!flats?.length) return null;
-
-  return (
-    <div>
-      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-1">
-        Floor {floor.floor_number}
-      </p>
-      <div className="flex flex-wrap gap-1.5 mt-0.5">
-        {flats.map((flat) => {
-          const isAssigned = assignedFlats.has(flat.id);
-          return (
-            <button
-              key={flat.id}
-              type="button"
-              className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs transition-colors ${
-                hasParentAccess
-                  ? "bg-blue-50 border-blue-200 text-blue-600 cursor-default"
-                  : isAssigned
-                    ? "bg-green-50 border-green-300 text-green-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600"
-                    : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
-              }`}
-              onClick={() => {
-                if (hasParentAccess) return;
-                if (isAssigned) onUnassignFlat(flat.id);
-                else onAssignFlat(flat.id);
-              }}
-            >
-              <Home className="h-2.5 w-2.5" />
-              {flat.flat_number}
-              {hasParentAccess && (
-                <span className="text-[9px] text-blue-400">inherited</span>
-              )}
-              {!hasParentAccess && isAssigned && (
-                <X className="h-2.5 w-2.5" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
