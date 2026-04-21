@@ -30,11 +30,14 @@ Snagging inspection system for real estate handover. Three repos, one backend:
 - **All IDs are strings** (backend returns UUIDs). Never use `Number()` on IDs.
 - **HTTP methods:** All updates use `PATCH` (not PUT) to match backend.
 - **Nested create URLs:** Buildings created via `POST /projects/{id}/buildings`, floors via `POST /buildings/{id}/floors`, flats via `POST /floors/{id}/flats`. Parent ID is in URL path, not request body.
-- **Inspection entries:** Endpoint path is `/entries/` not `/inspections/`. Field names: `status` (not `check_status`), `item_name` (not `checklist_item`).
+- **Inspection entries:** Endpoint path is `/entries/` not `/inspections/`. Field names: `status` (not `check_status`), `item_name` (not `checklist_item`). Cross-project snag list lives at `GET /api/v1/entries/snags` with `project_id`/`severity`/`category`/`snag_fix_status` query params — the portal calls this from `InspectionListPage` via `listAllSnags()`. Status literals: `PASS` / `FAIL` / `NA` (snags are `status === "FAIL"`).
+- **Contractor field names:** Portal types use `specialty` (not `trade`) to match the backend column. Contractor update is `PATCH /api/v1/contractors/{id}` (not PUT). Assigning a contractor to a snag is `POST /api/v1/entries/{entryId}/assign-contractor/{contractorId}` — both IDs in the URL, optional body `{ due_date?, notes? }`. Unassign is the mirror `DELETE` on the same path. A prior revision used `PUT`, `/inspections/…`, and `/contractor-assignments/{id}` — none of those routes exist backend-side.
+- **SnagContractorAssignment shape** mirrors backend exactly: `{ id, inspection_entry_id, contractor_id, assigned_at, due_date, notes }`. There is no `entry_id`/`contractor_name`/`resolved_at` — portal interfaces that declared those were silently receiving `undefined`.
 - **Default creds:** `admin` / `admin123`.
 - **Error boundary** in `main.tsx` catches React crashes and shows the error message instead of white screen.
 - **Sidebar highlighting:** "Projects" stays highlighted on hierarchy pages (`/buildings/*`, `/floors/*`) via `matchPrefixes` on the nav item. Uses `useLocation` pathname matching.
 - **Media URLs:** Use `getMediaUrl(minioKey)` from `src/api/media.ts`. Builds `{backendUrl}/api/v1/files/{minioKey}?token={jwt}`. Don't `encodeURIComponent` the minio key — slashes must stay as path segments.
+- **Media upload (portal-side):** `POST /api/v1/files/upload` (NOT `/media/upload`), multipart form field `inspection_entry_id` (NOT `entry_id`). `uploadMedia()` in `src/api/media.ts` is the single caller.
 - **"Business Associate" = Contractor (UI label only).** User-visible strings say "Business Associate" / "Business Associates" (sidebar, page headings, dialog titles, dropdown placeholder, inspection-detail card). Everything else — route path `/contractors`, component file names, types (`Contractor`, `ContractorCreate`, `SnagContractorAssignment`), API client (`listContractors`, `assignContractorToSnag`), backend endpoints (`/api/v1/contractors`), DB tables — still uses `contractor`. Pure UI rename on 2026-04-20. Do not rename identifiers/paths/types without a full cross-repo migration.
 
 ## Design System

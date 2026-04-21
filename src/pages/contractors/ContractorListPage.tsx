@@ -56,7 +56,7 @@ export default function ContractorListPage() {
 
   const columns: Column<Contractor>[] = [
     { key: "name", header: "Name", sortable: true },
-    { key: "trade", header: "Trade", sortable: true },
+    { key: "specialty", header: "Specialty", sortable: true, render: (c) => c.specialty ?? "--" },
     { key: "phone", header: "Phone", render: (c) => c.phone ?? "--" },
     { key: "email", header: "Email", render: (c) => c.email ?? "--" },
     { key: "company", header: "Company", render: (c) => c.company ?? "--" },

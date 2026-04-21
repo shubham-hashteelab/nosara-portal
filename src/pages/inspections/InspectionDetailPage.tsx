@@ -345,7 +345,7 @@ export default function InspectionDetailPage() {
                   <option value="">Select business associate...</option>
                   {contractors?.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.trade})
+                      {c.name}{c.specialty ? ` (${c.specialty})` : ""}
                     </option>
                   ))}
                 </Select>

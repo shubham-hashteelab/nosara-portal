@@ -32,7 +32,7 @@ export async function updateContractor(
   id: string,
   data: ContractorUpdate
 ): Promise<Contractor> {
-  const response = await apiClient.put<Contractor>(
+  const response = await apiClient.patch<Contractor>(
     `/api/v1/contractors/${id}`,
     data
   );
@@ -45,17 +45,21 @@ export async function deleteContractor(id: string): Promise<void> {
 
 export async function assignContractorToSnag(
   entryId: string,
-  contractorId: string
+  contractorId: string,
+  body?: { due_date?: string; notes?: string }
 ): Promise<SnagContractorAssignment> {
   const response = await apiClient.post<SnagContractorAssignment>(
-    `/api/v1/inspections/${entryId}/assign-contractor`,
-    { contractor_id: contractorId }
+    `/api/v1/entries/${entryId}/assign-contractor/${contractorId}`,
+    body ?? {}
   );
   return response.data;
 }
 
 export async function unassignContractorFromSnag(
-  assignmentId: string
+  entryId: string,
+  contractorId: string
 ): Promise<void> {
-  await apiClient.delete(`/api/v1/contractor-assignments/${assignmentId}`);
+  await apiClient.delete(
+    `/api/v1/entries/${entryId}/assign-contractor/${contractorId}`
+  );
 }

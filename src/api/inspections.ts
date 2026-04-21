@@ -30,7 +30,7 @@ export async function updateInspectionEntry(
   return response.data;
 }
 
-export async function listAllSnags(_params?: {
+export async function listAllSnags(params?: {
   project_id?: string;
   severity?: string;
   category?: string;
@@ -38,6 +38,9 @@ export async function listAllSnags(_params?: {
   skip?: number;
   limit?: number;
 }): Promise<InspectionEntry[]> {
-  // No dedicated backend endpoint for snags — return empty array
-  return [];
+  const response = await apiClient.get<InspectionEntry[]>(
+    "/api/v1/entries/snags",
+    { params }
+  );
+  return response.data;
 }

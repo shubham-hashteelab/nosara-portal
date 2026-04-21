@@ -11,7 +11,6 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
   assigned_project_ids: string[];
   assigned_building_ids: string[];
   assigned_flat_ids: string[];
@@ -24,9 +23,10 @@ export interface UserCreate {
   role: UserRole;
 }
 
+// Role is not editable via PATCH — backend UserUpdate schema rejects it.
+// Use the dedicated role-change endpoint if that behavior is ever added.
 export interface UserUpdate {
   full_name?: string;
-  role?: UserRole;
   is_active?: boolean;
   password?: string;
 }
@@ -75,8 +75,8 @@ export interface Building {
   updated_at: string;
 }
 
+// Parent projectId goes in the URL (`POST /projects/{id}/buildings`), not the body.
 export interface BuildingCreate {
-  project_id: string;
   name: string;
 }
 
@@ -95,14 +95,13 @@ export interface Floor {
   updated_at: string;
 }
 
+// Parent buildingId goes in the URL. `label` is server-computed from floor_number.
 export interface FloorCreate {
-  building_id: string;
   floor_number: number;
-  label: string;
 }
 
 export interface FloorUpdate {
-  label?: string;
+  floor_number?: number;
 }
 
 /* ───────── Flat ───────── */
@@ -116,8 +115,8 @@ export interface Flat {
   updated_at: string;
 }
 
+// Parent floorId goes in the URL (`POST /floors/{id}/flats`).
 export interface FlatCreate {
-  floor_id: string;
   flat_number: string;
   flat_type: string;
 }
@@ -125,6 +124,7 @@ export interface FlatCreate {
 export interface FlatUpdate {
   flat_number?: string;
   flat_type?: string;
+  inspection_status?: InspectionStatus;
 }
 
 /* ───────── Inspection Entry ───────── */
@@ -183,7 +183,7 @@ export interface InspectionVideo {
 export interface Contractor {
   id: string;
   name: string;
-  trade: string;
+  specialty: string | null;
   phone: string | null;
   email: string | null;
   company: string | null;
@@ -194,7 +194,7 @@ export interface Contractor {
 
 export interface ContractorCreate {
   name: string;
-  trade: string;
+  specialty?: string;
   phone?: string;
   email?: string;
   company?: string;
@@ -202,7 +202,7 @@ export interface ContractorCreate {
 
 export interface ContractorUpdate {
   name?: string;
-  trade?: string;
+  specialty?: string;
   phone?: string;
   email?: string;
   company?: string;
@@ -211,16 +211,17 @@ export interface ContractorUpdate {
 
 export interface SnagContractorAssignment {
   id: string;
-  entry_id: string;
+  inspection_entry_id: string;
   contractor_id: string;
-  contractor_name: string;
   assigned_at: string;
-  resolved_at: string | null;
+  due_date: string | null;
+  notes: string | null;
 }
 
 /* ───────── Checklist Template ───────── */
 export interface ChecklistTemplate {
   id: string;
+  project_id: string | null;
   room_type: string;
   category: string;
   item_name: string;
@@ -231,13 +232,17 @@ export interface ChecklistTemplate {
 }
 
 export interface ChecklistTemplateCreate {
+  project_id?: string | null;
   room_type: string;
   category: string;
   item_name: string;
   sort_order?: number;
+  is_active?: boolean;
 }
 
 export interface ChecklistTemplateUpdate {
+  room_type?: string;
+  category?: string;
   item_name?: string;
   sort_order?: number;
   is_active?: boolean;
@@ -246,6 +251,7 @@ export interface ChecklistTemplateUpdate {
 /* ───────── Flat Type Rooms ───────── */
 export interface FlatTypeRoom {
   id: string;
+  project_id: string | null;
   flat_type: string;
   room_type: string;
   label: string;
@@ -253,6 +259,7 @@ export interface FlatTypeRoom {
 }
 
 export interface FlatTypeRoomCreate {
+  project_id?: string | null;
   flat_type: string;
   room_type: string;
   label: string;
@@ -508,13 +515,30 @@ export interface UserScopeDetails {
   flats: ScopedFlat[];
 }
 
-/* ───────── Sync ───────── */
+/* ───────── Sync ─────────
+ * Shape mirrors backend `SyncPullResponse`. Portal does not call /sync directly
+ * today — this interface exists for accuracy if/when a portal feature consumes it.
+ */
+export interface ScopeSnapshot {
+  project_ids: string[];
+  building_ids: string[];
+  floor_ids: string[];
+  flat_ids: string[];
+}
+
 export interface SyncPullResponse {
+  projects: Project[];
+  buildings: Building[];
+  floors: Floor[];
   flats: Flat[];
   inspection_entries: InspectionEntry[];
+  contractors: Contractor[];
   checklist_templates: ChecklistTemplate[];
   flat_type_rooms: FlatTypeRoom[];
-  server_timestamp: string;
+  floor_plan_layouts: FloorPlanLayout[];
+  deleted_ids: string[];
+  scope_snapshot: ScopeSnapshot;
+  server_time: string;
 }
 
 /* ───────── Pagination ───────── */

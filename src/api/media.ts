@@ -8,10 +8,10 @@ export async function uploadMedia(
   const formData = new FormData();
   formData.append("file", file);
   formData.append("type", type);
-  formData.append("entry_id", String(entryId));
+  formData.append("inspection_entry_id", String(entryId));
 
   const response = await apiClient.post<{ minio_key: string }>(
-    "/api/v1/media/upload",
+    "/api/v1/files/upload",
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },

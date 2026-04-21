@@ -16,7 +16,7 @@ import type { Contractor } from "@/types/api";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  trade: z.string().min(1, "Trade is required"),
+  specialty: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   company: z.string().optional(),
@@ -47,12 +47,12 @@ export function ContractorFormDialog({
     values: contractor
       ? {
           name: contractor.name,
-          trade: contractor.trade,
+          specialty: contractor.specialty ?? "",
           phone: contractor.phone ?? "",
           email: contractor.email ?? "",
           company: contractor.company ?? "",
         }
-      : { name: "", trade: "", phone: "", email: "", company: "" },
+      : { name: "", specialty: "", phone: "", email: "", company: "" },
   });
 
   const handleFormSubmit = async (data: FormData) => {
@@ -82,13 +82,13 @@ export function ContractorFormDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label>Trade</Label>
+              <Label>Specialty</Label>
               <Input
                 placeholder="e.g., Electrician, Plumber"
-                {...register("trade")}
+                {...register("specialty")}
               />
-              {errors.trade && (
-                <p className="text-sm text-red-500">{errors.trade.message}</p>
+              {errors.specialty && (
+                <p className="text-sm text-red-500">{errors.specialty.message}</p>
               )}
             </div>
           </div>
