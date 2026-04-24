@@ -20,7 +20,14 @@ export function AkashGangaPool({ poolRef, armed, dragging }: Props) {
           onClick={() => setCollapsed(false)}
           title="Open Akash Ganga"
         >
-          <span className="ag-brand-mark" />
+          <div className="ag-pool ag-pool-mini">
+            <CausticsSvg variant="a" />
+            <CausticsSvg variant="b" />
+            <div className="ag-glint" />
+            <div className="ag-ripple ag-r1" />
+            <div className="ag-ripple ag-r2" />
+            <div className="ag-ripple ag-r3" />
+          </div>
         </button>
       </div>
     );

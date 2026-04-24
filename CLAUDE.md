@@ -99,6 +99,7 @@ src/
 - **Hierarchical Access Control** — `ProjectAssignmentDialog` lets managers assign inspectors at project, tower, or flat level. Live updates via `getUser` query after each mutation.
 - **Seed Demo Data** — one-click button on Projects page seeds 5 Godrej projects + checklist defaults.
 - **Flat Inspection Status** — `flat.inspection_status` (NOT_STARTED/IN_PROGRESS/COMPLETED) is **backend-computed** from entry counts. Portal is a pure pass-through — displays via `StatusBadge`, never computes or mutates it. The separate room-level progress coloring in `FloorPlanView` is computed client-side from entries (independent system).
+- **Akash Ganga Pool** — Floating widget (fixed bottom-right) for drag-and-drop tower card inspection. Three components: `AkashGangaPool.tsx` (the pool card with collapse/expand), `AkashGangaModal.tsx` (detail modal on drop), `akash-ganga.css` (all styles, `ag-` prefixed to avoid Tailwind collisions). The pool renders animated SVG caustics (two `feTurbulence` layers with `baseFrequency` animation), drifting blend layers, ripple rings, and a glint highlight. Has two states: **expanded** (full 340×380 card with header/footer) and **collapsed** (64px circle). Both states render the same caustics animation — the collapsed state uses `.ag-pool-mini` (48px) inside the circle button. Do NOT replace the caustics with a static gradient in either state.
 - **SPA routing** — `vercel.json` has rewrite rule for client-side routing.
 
 ## Key Routes
