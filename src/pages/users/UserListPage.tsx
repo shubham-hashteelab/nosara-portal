@@ -15,8 +15,8 @@ import { UsersSummaryStrip } from "./UsersSummaryStrip";
 import { ProjectCoverageView } from "./ProjectCoverageView";
 import { Plus } from "lucide-react";
 import { capitalize, formatDate } from "@/lib/utils";
-import type { UserRole } from "@/types/enums";
-import type { User } from "@/types/api";
+import { UserRole } from "@/types/enums";
+import type { User, UserCreate, UserUpdate } from "@/types/api";
 
 export default function UserListPage() {
   const queryClient = useQueryClient();
@@ -53,7 +53,7 @@ export default function UserListPage() {
       data,
     }: {
       id: string;
-      data: { full_name?: string; role?: UserRole; password?: string };
+      data: UserUpdate;
     }) => updateUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -140,7 +140,7 @@ export default function UserListPage() {
 
         <TabsContent value="users" className="mt-4">
           <DataTable
-            data={users ?? []}
+            data={(users ?? []).filter((u) => u.role !== UserRole.CONTRACTOR)}
             columns={columns}
             searchable
             searchPlaceholder="Search users..."
@@ -167,13 +167,8 @@ export default function UserListPage() {
       <UserFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
-        onSubmit={async (data) => {
-          await createMutation.mutateAsync({
-            username: data.username,
-            password: data.password!,
-            full_name: data.full_name,
-            role: data.role,
-          });
+        onSubmit={async (payload) => {
+          await createMutation.mutateAsync(payload as UserCreate);
         }}
       />
 
@@ -182,20 +177,11 @@ export default function UserListPage() {
         open={!!editTarget}
         onOpenChange={() => setEditTarget(null)}
         user={editTarget}
-        onSubmit={async (data) => {
+        onSubmit={async (payload) => {
           if (!editTarget) return;
-          const updateData: {
-            full_name?: string;
-            role?: UserRole;
-            password?: string;
-          } = {
-            full_name: data.full_name,
-            role: data.role,
-          };
-          if (data.password) updateData.password = data.password;
           await updateMutation.mutateAsync({
             id: editTarget.id,
-            data: updateData,
+            data: payload as UserUpdate,
           });
         }}
       />

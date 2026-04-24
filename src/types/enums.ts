@@ -30,8 +30,27 @@ export type InspectionStatus =
 export const UserRole = {
   MANAGER: "MANAGER",
   INSPECTOR: "INSPECTOR",
+  CONTRACTOR: "CONTRACTOR",
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export const Trade = {
+  PLUMBING: "PLUMBING",
+  ELECTRICAL: "ELECTRICAL",
+  PAINTING: "PAINTING",
+  CARPENTRY: "CARPENTRY",
+  TILING: "TILING",
+  CIVIL: "CIVIL",
+  HVAC: "HVAC",
+  MISC: "MISC",
+} as const;
+export type Trade = (typeof Trade)[keyof typeof Trade];
+
+export const SnagImageKind = {
+  NC: "NC",
+  CLOSURE: "CLOSURE",
+} as const;
+export type SnagImageKind = (typeof SnagImageKind)[keyof typeof SnagImageKind];
 
 export const ChecklistCategory = {
   ELECTRICAL: "ELECTRICAL",

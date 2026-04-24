@@ -40,7 +40,7 @@ import {
   MousePointerClick,
 } from "lucide-react";
 import { capitalize } from "@/lib/utils";
-import { RoomType, ChecklistCategory } from "@/types/enums";
+import { RoomType, ChecklistCategory, Trade } from "@/types/enums";
 import type {
   ChecklistTemplate,
   FlatTypeRoom,
@@ -48,8 +48,9 @@ import type {
 } from "@/types/api";
 
 const templateSchema = z.object({
-  room_type: z.nativeEnum(RoomType),
-  category: z.nativeEnum(ChecklistCategory),
+  room_type: z.enum(Object.values(RoomType) as [string, ...string[]]),
+  category: z.enum(Object.values(ChecklistCategory) as [string, ...string[]]),
+  trade: z.enum(Object.values(Trade) as [string, ...string[]]),
   item_name: z.string().min(1, "Label is required"),
   sort_order: z.coerce.number().int().min(0).default(0),
 });
@@ -135,6 +136,7 @@ export default function BlueprintsPage() {
     defaultValues: {
       room_type: RoomType.LIVING_ROOM,
       category: ChecklistCategory.ELECTRICAL,
+      trade: Trade.MISC,
       item_name: "",
       sort_order: 0,
     },
@@ -146,6 +148,7 @@ export default function BlueprintsPage() {
       addForm.reset({
         room_type: addRoomType as TemplateForm["room_type"],
         category: ChecklistCategory.ELECTRICAL,
+        trade: Trade.MISC,
         item_name: "",
         sort_order: 0,
       });
@@ -158,6 +161,7 @@ export default function BlueprintsPage() {
       ? {
           room_type: editTarget.room_type as TemplateForm["room_type"],
           category: editTarget.category as TemplateForm["category"],
+          trade: editTarget.trade as TemplateForm["trade"],
           item_name: editTarget.item_name,
           sort_order: editTarget.sort_order,
         }
@@ -429,9 +433,14 @@ export default function BlueprintsPage() {
                       </span>
                       <div>
                         <p className="text-sm font-medium">{t.item_name}</p>
-                        <p className="text-xs text-gray-500">
-                          {capitalize(t.category)}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-gray-500">
+                            {capitalize(t.category)}
+                          </p>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {t.trade}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -483,15 +492,27 @@ export default function BlueprintsPage() {
             )}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select {...addForm.register("category")}>
-                {Object.values(ChecklistCategory).map((c) => (
-                  <option key={c} value={c}>
-                    {capitalize(c)}
-                  </option>
-                ))}
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select {...addForm.register("category")}>
+                  {Object.values(ChecklistCategory).map((c) => (
+                    <option key={c} value={c}>
+                      {capitalize(c)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Trade</Label>
+                <Select {...addForm.register("trade")}>
+                  {Object.values(Trade).map((t) => (
+                    <option key={t} value={t}>
+                      {capitalize(t)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Item Label</Label>
@@ -544,6 +565,7 @@ export default function BlueprintsPage() {
                 data: {
                   item_name: data.item_name,
                   sort_order: data.sort_order,
+                  trade: data.trade,
                 },
               })
             )}
@@ -552,6 +574,16 @@ export default function BlueprintsPage() {
             <div className="space-y-2">
               <Label>Item Label</Label>
               <Input {...editForm.register("item_name")} />
+            </div>
+            <div className="space-y-2">
+              <Label>Trade</Label>
+              <Select {...editForm.register("trade")}>
+                {Object.values(Trade).map((t) => (
+                  <option key={t} value={t}>
+                    {capitalize(t)}
+                  </option>
+                ))}
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Sort Order</Label>

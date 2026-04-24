@@ -11,6 +11,10 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   created_at: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  trades: string[] | null;   // populated only when role === "CONTRACTOR"
   assigned_project_ids: string[];
   assigned_building_ids: string[];
   assigned_flat_ids: string[];
@@ -21,14 +25,23 @@ export interface UserCreate {
   password: string;
   full_name: string;
   role: UserRole;
+  email?: string | null;
+  phone?: string | null;
+  // CONTRACTOR only — backend rejects trades/company on other roles.
+  trades?: string[];
+  company?: string | null;
 }
 
 // Role is not editable via PATCH — backend UserUpdate schema rejects it.
-// Use the dedicated role-change endpoint if that behavior is ever added.
 export interface UserUpdate {
   full_name?: string;
   is_active?: boolean;
   password?: string;
+  email?: string | null;
+  phone?: string | null;
+  // CONTRACTOR only.
+  trades?: string[];
+  company?: string | null;
 }
 
 /* ───────── Auth ───────── */
@@ -139,18 +152,30 @@ export interface InspectionEntry {
   snag_fix_status: string;
   notes: string | null;
   inspector_id: string | null;
+  trade: string;
+  fixed_at: string | null;
+  fixed_by_id: string | null;
+  verified_at: string | null;
+  verified_by_id: string | null;
+  verification_remark: string | null;
+  rejection_remark: string | null;
+  rejected_at: string | null;
   created_at: string;
   updated_at: string;
   images: SnagImage[];
   voice_notes: VoiceNote[];
   videos: InspectionVideo[];
+  contractor_assignments: ContractorAssignmentBrief[];
 }
 
 export interface InspectionEntryUpdate {
   status?: string;
   severity?: string | null;
-  snag_fix_status?: string | null;
   notes?: string | null;
+  // snag_fix_status can only be sent as an idempotent no-op; backend rejects
+  // any transition here. Real state changes go through /mark-fixed, /verify,
+  // or /reject endpoints.
+  snag_fix_status?: string | null;
 }
 
 /* ───────── Media ───────── */
@@ -160,6 +185,7 @@ export interface SnagImage {
   minio_key: string;
   original_filename: string | null;
   file_size_bytes: number | null;
+  kind: string;   // "NC" (inspector-uploaded defect photo) | "CLOSURE" (contractor post-fix photo)
   created_at: string;
 }
 
@@ -179,43 +205,47 @@ export interface InspectionVideo {
   created_at: string;
 }
 
-/* ───────── Contractor ───────── */
-export interface Contractor {
-  id: string;
-  name: string;
-  specialty: string | null;
-  phone: string | null;
-  email: string | null;
-  company: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ContractorCreate {
-  name: string;
-  specialty?: string;
-  phone?: string;
-  email?: string;
-  company?: string;
-}
-
-export interface ContractorUpdate {
-  name?: string;
-  specialty?: string;
-  phone?: string;
-  email?: string;
-  company?: string;
-  is_active?: boolean;
-}
-
-export interface SnagContractorAssignment {
+/* ───────── Contractor assignments ─────────
+ * Contractors are users with role=CONTRACTOR. The old standalone Contractor
+ * type is gone; use User wherever a contractor row is needed.
+ */
+export interface ContractorAssignmentBrief {
   id: string;
   inspection_entry_id: string;
   contractor_id: string;
+  contractor_name: string;
+  contractor_trades: string[];
   assigned_at: string;
   due_date: string | null;
   notes: string | null;
+}
+
+// Response shape returned by POST /entries/{id}/assign-contractor.
+// Same fields as the brief embedded on InspectionEntry.contractor_assignments.
+export type SnagContractorAssignment = ContractorAssignmentBrief;
+
+export interface OrphanedAssignment {
+  assignment_id: string;
+  inspection_entry_id: string;
+  contractor_id: string;
+  contractor_name: string;
+  contractor_role: string;
+  contractor_is_active: boolean;
+  assigned_at: string;
+}
+
+// Body of the 409 returned by PATCH /users/{id} with is_active=false on a
+// CONTRACTOR that still has non-VERIFIED assignments.
+export interface OpenAssignmentEntry {
+  entry_id: string;
+  item_name: string;
+  snag_fix_status: string;
+}
+
+export interface DeactivateConflictDetail {
+  code: "OPEN_ASSIGNMENTS";
+  message: string;
+  entries: OpenAssignmentEntry[];
 }
 
 /* ───────── Checklist Template ───────── */
@@ -225,6 +255,7 @@ export interface ChecklistTemplate {
   room_type: string;
   category: string;
   item_name: string;
+  trade: string;
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -236,6 +267,7 @@ export interface ChecklistTemplateCreate {
   room_type: string;
   category: string;
   item_name: string;
+  trade: string;
   sort_order?: number;
   is_active?: boolean;
 }
@@ -244,6 +276,7 @@ export interface ChecklistTemplateUpdate {
   room_type?: string;
   category?: string;
   item_name?: string;
+  trade?: string;
   sort_order?: number;
   is_active?: boolean;
 }
@@ -532,7 +565,7 @@ export interface SyncPullResponse {
   floors: Floor[];
   flats: Flat[];
   inspection_entries: InspectionEntry[];
-  contractors: Contractor[];
+  contractors: User[];   // post-Phase1 backend returns empty list; field kept for wire compatibility
   checklist_templates: ChecklistTemplate[];
   flat_type_rooms: FlatTypeRoom[];
   floor_plan_layouts: FloorPlanLayout[];

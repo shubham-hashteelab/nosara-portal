@@ -9,6 +9,8 @@ import {
   BarChart3,
   Building2,
   Settings,
+  ShieldCheck,
+  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,9 +22,11 @@ const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/projects", label: "Projects", icon: FolderOpen, matchPrefixes: PROJECTS_PREFIXES },
   { to: "/inspections", label: "Inspections", icon: ClipboardCheck },
+  { to: "/verification-queue", label: "Verification Queue", icon: ShieldCheck },
   { to: "/blueprints", label: "Blueprints", icon: LayoutTemplate, matchPrefixes: BLUEPRINTS_PREFIXES },
   { to: "/users", label: "Users", icon: Users },
   { to: "/contractors", label: "Business Associates", icon: Wrench },
+  { to: "/orphaned-assignments", label: "Orphaned Assignments", icon: UserX },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

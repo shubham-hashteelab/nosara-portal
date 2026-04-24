@@ -4,39 +4,49 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { getInspectionEntry, updateInspectionEntry } from "@/api/inspections";
 import {
-  listContractors,
+  getInspectionEntry,
+  updateInspectionEntry,
   assignContractorToSnag,
-} from "@/api/contractors";
+  unassignContractorFromSnag,
+  verifyEntry,
+  rejectEntry,
+} from "@/api/inspections";
+import { listContractors } from "@/api/contractors";
 import { getMediaUrl } from "@/api/media";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { SeverityBadge } from "@/components/common/SeverityBadge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { AssignmentCard } from "@/components/inspection/AssignmentCard";
+import { FixTimeline } from "@/components/inspection/FixTimeline";
+import { NCGallery } from "@/components/inspection/NCGallery";
+import { ClosureGallery } from "@/components/inspection/ClosureGallery";
+import { RemarkDialog } from "@/components/inspection/RemarkDialog";
 import {
   ArrowLeft,
   Save,
-  UserPlus,
   X,
-  Image as ImageIcon,
   Mic,
   Video,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { capitalize, formatDateTime } from "@/lib/utils";
+
 const STATUS_VALUES = ["NA", "PASS", "FAIL"] as const;
 const SEVERITY_VALUES = ["CRITICAL", "MAJOR", "MINOR"] as const;
-const FIX_STATUS_VALUES = ["OPEN", "FIXED", "VERIFIED"] as const;
 
 const updateSchema = z.object({
   status: z.string(),
   severity: z.string().nullable(),
-  snag_fix_status: z.string().nullable(),
   notes: z.string().nullable(),
 });
 
@@ -44,15 +54,17 @@ type UpdateForm = z.infer<typeof updateSchema>;
 
 export default function InspectionDetailPage() {
   const { entryId } = useParams<{ entryId: string }>();
-  const entryIdNum = entryId!;
+  const id = entryId!;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedContractor, setSelectedContractor] = useState("");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [remarkMode, setRemarkMode] = useState<"verify" | "reject" | null>(
+    null
+  );
 
   const { data: entry, isLoading } = useQuery({
-    queryKey: ["inspection", entryIdNum],
-    queryFn: () => getInspectionEntry(entryIdNum),
+    queryKey: ["inspection", id],
+    queryFn: () => getInspectionEntry(id),
   });
 
   const { data: contractors } = useQuery({
@@ -66,33 +78,68 @@ export default function InspectionDetailPage() {
       ? {
           status: entry.status,
           severity: entry.severity,
-          snag_fix_status: entry.snag_fix_status,
           notes: entry.notes,
         }
       : undefined,
   });
 
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ["inspection", id] });
+
   const updateMutation = useMutation({
     mutationFn: (data: UpdateForm) =>
-      updateInspectionEntry(entryIdNum, {
+      updateInspectionEntry(id, {
         status: data.status,
         severity: data.severity,
-        snag_fix_status: data.snag_fix_status,
         notes: data.notes,
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["inspection", entryIdNum] }),
+    onSuccess: invalidate,
   });
 
   const assignMutation = useMutation({
+    mutationFn: ({
+      contractorId,
+      opts,
+      force,
+    }: {
+      contractorId: string;
+      opts: { due_date?: string; notes?: string };
+      force: boolean;
+    }) => assignContractorToSnag(id, contractorId, opts, force),
+    onSuccess: invalidate,
+  });
+
+  const unassignMutation = useMutation({
     mutationFn: (contractorId: string) =>
-      assignContractorToSnag(entryIdNum, contractorId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["inspection", entryIdNum] }),
+      unassignContractorFromSnag(id, contractorId),
+    onSuccess: invalidate,
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: (remark: string) =>
+      verifyEntry(id, { verification_remark: remark }),
+    onSuccess: () => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["verification-queue"] });
+      setRemarkMode(null);
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (remark: string) =>
+      rejectEntry(id, { rejection_remark: remark }),
+    onSuccess: () => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["verification-queue"] });
+      setRemarkMode(null);
+    },
   });
 
   if (isLoading) return <LoadingSpinner />;
   if (!entry) return <div>Entry not found</div>;
+
+  const wasRejected =
+    entry.rejected_at !== null && entry.snag_fix_status === "OPEN";
 
   return (
     <div className="space-y-6">
@@ -102,9 +149,7 @@ export default function InspectionDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {entry.item_name}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">{entry.item_name}</h1>
           <p className="text-sm text-gray-500">
             {entry.room_label} — {capitalize(entry.category)} — Entry #{entry.id}
           </p>
@@ -112,11 +157,33 @@ export default function InspectionDetailPage() {
         <div className="flex items-center gap-2">
           <StatusBadge status={entry.status} />
           <SeverityBadge severity={entry.severity} />
+          <Badge variant="secondary">{entry.snag_fix_status}</Badge>
         </div>
       </div>
 
+      {wasRejected && (
+        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div>
+            <div className="font-medium">
+              Rejected — Business Associate needs to rework this snag.
+            </div>
+            {entry.rejection_remark && (
+              <p className="mt-1 text-red-700 italic">
+                {entry.rejection_remark}
+              </p>
+            )}
+            {entry.rejected_at && (
+              <p className="mt-1 text-xs text-red-600">
+                Rejected {formatDateTime(entry.rejected_at)}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Update form */}
+        {/* Left: Update form + galleries + timeline */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -129,7 +196,7 @@ export default function InspectionDetailPage() {
                 )}
                 className="space-y-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Status</Label>
                     <Select {...form.register("status")}>
@@ -145,33 +212,11 @@ export default function InspectionDetailPage() {
                     <Select
                       value={form.watch("severity") ?? ""}
                       onChange={(e) =>
-                        form.setValue(
-                          "severity",
-                          e.target.value || null
-                        )
+                        form.setValue("severity", e.target.value || null)
                       }
                     >
                       <option value="">None</option>
                       {SEVERITY_VALUES.map((s) => (
-                        <option key={s} value={s}>
-                          {capitalize(s)}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Fix Status</Label>
-                    <Select
-                      value={form.watch("snag_fix_status") ?? ""}
-                      onChange={(e) =>
-                        form.setValue(
-                          "snag_fix_status",
-                          e.target.value || null
-                        )
-                      }
-                    >
-                      <option value="">None</option>
-                      {FIX_STATUS_VALUES.map((s) => (
                         <option key={s} value={s}>
                           {capitalize(s)}
                         </option>
@@ -189,10 +234,11 @@ export default function InspectionDetailPage() {
                     }
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                >
+                <p className="text-xs text-gray-500">
+                  Fix status transitions (FIXED / VERIFIED / OPEN after reject)
+                  use the dedicated flow — they can't be set directly here.
+                </p>
+                <Button type="submit" disabled={updateMutation.isPending}>
                   <Save className="h-4 w-4 mr-2" />
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
@@ -205,32 +251,12 @@ export default function InspectionDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Photos */}
-          {entry.images.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ImageIcon className="h-4 w-4" />
-                  Photos ({entry.images.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {entry.images.map((img) => (
-                    <div key={img.id} className="relative group">
-                      <img
-                        src={getMediaUrl(img.minio_key)}
-                        alt={img.original_filename ?? "Snag photo"}
-                        className="w-full h-40 object-cover rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary-500"
-                        onClick={() =>
-                          setLightboxImage(getMediaUrl(img.minio_key))
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          <NCGallery images={entry.images} onLightbox={setLightboxImage} />
+          {entry.status === "FAIL" && (
+            <ClosureGallery
+              images={entry.images}
+              onLightbox={setLightboxImage}
+            />
           )}
 
           {/* Voice notes */}
@@ -275,7 +301,10 @@ export default function InspectionDetailPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {entry.videos.map((vid) => (
-                  <div key={vid.id} className="rounded-lg overflow-hidden border">
+                  <div
+                    key={vid.id}
+                    className="rounded-lg overflow-hidden border"
+                  >
                     <video
                       controls
                       src={getMediaUrl(vid.minio_key)}
@@ -288,7 +317,7 @@ export default function InspectionDetailPage() {
           )}
         </div>
 
-        {/* Right: Info & Contractors */}
+        {/* Right: Details + Assignment + Timeline + inline verify/reject */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -305,6 +334,11 @@ export default function InspectionDetailPage() {
                 <span className="font-medium">
                   {capitalize(entry.category)}
                 </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-gray-500">Trade</span>
+                <span className="font-medium">{entry.trade}</span>
               </div>
               <Separator />
               <div className="flex justify-between">
@@ -330,42 +364,79 @@ export default function InspectionDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Contractor assignments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Business Associates</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-2">
-                <Select
-                  className="flex-1"
-                  value={selectedContractor}
-                  onChange={(e) => setSelectedContractor(e.target.value)}
-                >
-                  <option value="">Select business associate...</option>
-                  {contractors?.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}{c.specialty ? ` (${c.specialty})` : ""}
-                    </option>
-                  ))}
-                </Select>
-                <Button
-                  size="sm"
-                  disabled={
-                    !selectedContractor || assignMutation.isPending
-                  }
-                  onClick={() => {
-                    assignMutation.mutate(selectedContractor);
-                    setSelectedContractor("");
-                  }}
-                >
-                  <UserPlus className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {entry.status === "FAIL" && (
+            <>
+              <AssignmentCard
+                entry={entry}
+                contractors={contractors ?? []}
+                onAssign={(contractorId, opts, force) =>
+                  assignMutation.mutateAsync({
+                    contractorId,
+                    opts,
+                    force: force ?? false,
+                  })
+                }
+                onUnassign={(contractorId) =>
+                  unassignMutation.mutateAsync(contractorId)
+                }
+                pending={
+                  assignMutation.isPending || unassignMutation.isPending
+                }
+              />
+
+              {entry.snag_fix_status === "FIXED" && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      Manager Verification
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p className="text-sm text-gray-500">
+                      The Business Associate has marked this fixed. Verify or
+                      reject the closure.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => setRemarkMode("verify")}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Verify
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setRemarkMode("reject")}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reject
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <FixTimeline entry={entry} />
+            </>
+          )}
         </div>
       </div>
+
+      <RemarkDialog
+        open={remarkMode !== null}
+        mode={remarkMode ?? "verify"}
+        entryName={entry.item_name}
+        pending={verifyMutation.isPending || rejectMutation.isPending}
+        onConfirm={async (remark) => {
+          if (remarkMode === "verify") {
+            await verifyMutation.mutateAsync(remark);
+          } else if (remarkMode === "reject") {
+            await rejectMutation.mutateAsync(remark);
+          }
+        }}
+        onCancel={() => setRemarkMode(null)}
+      />
 
       {/* Lightbox */}
       {lightboxImage && (

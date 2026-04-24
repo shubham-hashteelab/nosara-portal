@@ -85,6 +85,13 @@ export default function LoginPage() {
       await login(data.username, data.password);
       navigate("/");
     } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      if (message === "CONTRACTOR_ROLE") {
+        setLoginError(
+          "Business Associate accounts are only supported on the mobile app. Please log in from the Nosara Android app."
+        );
+        return;
+      }
       if (
         err &&
         typeof err === "object" &&

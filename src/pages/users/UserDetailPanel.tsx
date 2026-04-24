@@ -97,6 +97,8 @@ export function UserDetailPanel({
             <div className="flex-1 overflow-y-auto px-6 py-5">
               {current.role === "MANAGER" ? (
                 <ManagerScope />
+              ) : current.role === "CONTRACTOR" ? (
+                <ContractorScope user={current} />
               ) : scopeLoading || !scope ? (
                 <LoadingSpinner />
               ) : (
@@ -133,6 +135,38 @@ function ManagerScope() {
           assignments are needed.
         </p>
       </div>
+    </div>
+  );
+}
+
+function ContractorScope({ user }: { user: User }) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-4">
+        <p className="text-sm font-medium text-gray-900">Business Associate</p>
+        <p className="text-xs text-gray-600 mt-1">
+          Manage this account's trades, company, and contact details from the
+          Business Associates page.
+        </p>
+      </div>
+      {user.trades && user.trades.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Trades</p>
+          <div className="flex flex-wrap gap-1">
+            {user.trades.map((t) => (
+              <Badge key={t} variant="secondary" className="text-xs">
+                {t}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      {user.company && (
+        <div>
+          <p className="text-xs text-gray-500">Company</p>
+          <p className="text-sm">{user.company}</p>
+        </div>
+      )}
     </div>
   );
 }

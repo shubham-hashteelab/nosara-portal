@@ -14,6 +14,8 @@ import InspectionDetailPage from "@/pages/inspections/InspectionDetailPage";
 import FlatTypeRoomsPage from "@/pages/checklists/FlatTypeRoomsPage";
 import UserListPage from "@/pages/users/UserListPage";
 import ContractorListPage from "@/pages/contractors/ContractorListPage";
+import VerificationQueuePage from "@/pages/verification-queue/VerificationQueuePage";
+import OrphanedAssignmentsPage from "@/pages/orphaned-assignments/OrphanedAssignmentsPage";
 import ReportPage from "@/pages/reports/ReportPage";
 import BlueprintsPage from "@/pages/blueprints/BlueprintsPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -72,6 +74,11 @@ export default function App() {
           />
           <Route path="users" element={<UserListPage />} />
           <Route path="contractors" element={<ContractorListPage />} />
+          <Route path="verification-queue" element={<VerificationQueuePage />} />
+          <Route
+            path="orphaned-assignments"
+            element={<OrphanedAssignmentsPage />}
+          />
           <Route path="reports" element={<ReportPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

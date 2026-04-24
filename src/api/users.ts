@@ -33,9 +33,14 @@ export async function createUser(data: UserCreate): Promise<User> {
 
 export async function updateUser(
   id: string,
-  data: UserUpdate
+  data: UserUpdate,
+  force = false
 ): Promise<User> {
-  const response = await apiClient.patch<User>(`/api/v1/users/${id}`, data);
+  // `force=true` is required to deactivate a CONTRACTOR with open assignments.
+  // Without force the backend returns 409 OPEN_ASSIGNMENTS with the orphan list.
+  const response = await apiClient.patch<User>(`/api/v1/users/${id}`, data, {
+    params: force ? { force: true } : undefined,
+  });
   return response.data;
 }
 

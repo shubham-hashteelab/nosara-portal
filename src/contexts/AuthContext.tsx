@@ -41,6 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const response = await loginApi(username, password);
+    // Contractors use the Android app — never persist their session from the
+    // portal. Throw a typed marker so LoginPage can show the right message.
+    if (response.user.role === "CONTRACTOR") {
+      throw new Error("CONTRACTOR_ROLE");
+    }
     setToken(response.access_token);
     setTokenState(response.access_token);
     localStorage.setItem(USER_KEY, JSON.stringify(response.user));
